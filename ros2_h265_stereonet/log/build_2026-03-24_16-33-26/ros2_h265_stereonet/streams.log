@@ -1,0 +1,12 @@
+[0.015s] Invoking command in '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet -- -j6 -l6
+[0.071s] [ 12%] [32mBuilding CXX object CMakeFiles/stereo_h265_node.dir/src/stereo_h265_node.cpp.o[0m
+[0.789s] In file included from [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/stereonet_process.h:33[m[K,
+[0.789s]                  from [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/src/stereo_h265_node.cpp:29[m[K:
+[0.790s] [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/pub_data.h:20:10:[m[K [01;31m[Kfatal error: [m[Kpcl/point_cloud.h: No such file or directory
+[0.790s]    20 | #include [01;31m[K"pcl/point_cloud.h"[m[K
+[0.790s]       |          [01;31m[K^~~~~~~~~~~~~~~~~~~[m[K
+[0.790s] compilation terminated.
+[0.790s] gmake[2]: *** [CMakeFiles/stereo_h265_node.dir/build.make:76: CMakeFiles/stereo_h265_node.dir/src/stereo_h265_node.cpp.o] Error 1
+[0.791s] gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/stereo_h265_node.dir/all] Error 2
+[0.791s] gmake: *** [Makefile:146: all] Error 2
+[0.793s] Invoked command in '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet -- -j6 -l6

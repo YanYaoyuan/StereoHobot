@@ -1,0 +1,15 @@
+In file included from [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/stereonet_process.h:23[m[K,
+                 from [01m[K/home/sunrise/robot/hobot_stereonet/src/stereonet_process.cpp:15[m[K:
+[01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/log_macros.h:20:61:[m[K [01;36m[Knote: [m[K‘[01m[K#pragma message: Detected rclcpp.hpp → ROS2 logging enabled[m[K’
+   20 | #pragma message("Detected rclcpp.hpp → ROS2 logging enabled"[01;36m[K)[m[K
+      |                                                             [01;36m[K^[m[K
+In file included from [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/stereonet_process.h:23[m[K,
+                 from [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/src/stereo_h265_node.cpp:28[m[K:
+[01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/log_macros.h:20:61:[m[K [01;36m[Knote: [m[K‘[01m[K#pragma message: Detected rclcpp.hpp → ROS2 logging enabled[m[K’
+   20 | #pragma message("Detected rclcpp.hpp → ROS2 logging enabled"[01;36m[K)[m[K
+      |                                                             [01;36m[K^[m[K
+In file included from [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/timer_utils.h:20[m[K,
+                 from [01m[K/home/sunrise/robot/hobot_stereonet/src/timer_utils.cpp:15[m[K:
+[01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/log_macros.h:20:61:[m[K [01;36m[Knote: [m[K‘[01m[K#pragma message: Detected rclcpp.hpp → ROS2 logging enabled[m[K’
+   20 | #pragma message("Detected rclcpp.hpp → ROS2 logging enabled"[01;36m[K)[m[K
+      |                                                             [01;36m[K^[m[K

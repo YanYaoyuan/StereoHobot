@@ -1,0 +1,5 @@
+In file included from /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/stereonet_process.h:23,
+                 from /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/src/stereo_h265_node.cpp:28:
+/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/log_macros.h:20:61: note: ‘#pragma message: Detected rclcpp.hpp → ROS2 logging enabled’
+   20 | #pragma message("Detected rclcpp.hpp → ROS2 logging enabled")
+      |                                                             ^

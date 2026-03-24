@@ -1,0 +1,70 @@
+[0.015s] Invoking command in '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet -- -j6 -l6
+[0.045s] -- ros2_h265_stereonet build platform S100
+[0.046s] -- Found ament_cmake: 1.3.12 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.246s] -- Found rclcpp: 16.0.17 (/opt/ros/humble/share/rclcpp/cmake)
+[0.280s] -- Found rosidl_generator_c: 3.1.8 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[0.284s] -- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[0.292s] -- Found rosidl_generator_cpp: 3.1.8 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[0.305s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.322s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.366s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[0.368s] -- Found rmw_fastrtps_cpp: 6.2.9 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[0.476s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[0.549s] -- Found sensor_msgs: 4.9.0 (/opt/ros/humble/share/sensor_msgs/cmake)
+[0.591s] -- Found foxglove_msgs: 3.2.4 (/opt/ros/humble/share/foxglove_msgs/cmake)
+[0.630s] -- SYS_ROOT is 
+[0.630s] -- Preferred ROS distribution: humble
+[0.738s] -- Configuring done
+[0.765s] -- Generating done
+[0.774s] -- Build files have been written to: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet
+[0.810s] [35m[1mConsolidate compiler generated dependencies of target stereo_h265_node[0m
+[0.880s] [ 12%] [32mBuilding CXX object CMakeFiles/stereo_h265_node.dir/src/stereo_h265_node.cpp.o[0m
+[7.348s] In file included from [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/stereonet_process.h:23[m[K,
+[7.348s]                  from [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/src/stereo_h265_node.cpp:29[m[K:
+[7.349s] [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/log_macros.h:20:61:[m[K [01;36m[Knote: [m[K‘[01m[K#pragma message: Detected rclcpp.hpp → ROS2 logging enabled[m[K’
+[7.349s]    20 | #pragma message("Detected rclcpp.hpp → ROS2 logging enabled"[01;36m[K)[m[K
+[7.349s]       |                                                             [01;36m[K^[m[K
+[32.907s] [ 25%] [32mBuilding CXX object CMakeFiles/stereo_h265_node.dir/home/sunrise/robot/hobot_stereonet/src/file_utils.cpp.o[0m
+[35.212s] [ 37%] [32mBuilding CXX object CMakeFiles/stereo_h265_node.dir/home/sunrise/robot/hobot_stereonet/src/feature_epipolar_align.cpp.o[0m
+[39.737s] [ 50%] [32mBuilding CXX object CMakeFiles/stereo_h265_node.dir/home/sunrise/robot/hobot_stereonet/src/img_convert_utils.cpp.o[0m
+[42.870s] [ 62%] [32mBuilding CXX object CMakeFiles/stereo_h265_node.dir/home/sunrise/robot/hobot_stereonet/src/timer_utils.cpp.o[0m
+[43.422s] In file included from [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/timer_utils.h:20[m[K,
+[43.423s]                  from [01m[K/home/sunrise/robot/hobot_stereonet/src/timer_utils.cpp:15[m[K:
+[43.423s] [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/log_macros.h:20:61:[m[K [01;36m[Knote: [m[K‘[01m[K#pragma message: Detected rclcpp.hpp → ROS2 logging enabled[m[K’
+[43.423s]    20 | #pragma message("Detected rclcpp.hpp → ROS2 logging enabled"[01;36m[K)[m[K
+[43.423s]       |                                                             [01;36m[K^[m[K
+[47.795s] [ 75%] [32mBuilding CXX object CMakeFiles/stereo_h265_node.dir/home/sunrise/robot/hobot_stereonet/src/stereonet_process.cpp.o[0m
+[51.699s] In file included from [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/stereonet_process.h:23[m[K,
+[51.699s]                  from [01m[K/home/sunrise/robot/hobot_stereonet/src/stereonet_process.cpp:15[m[K:
+[51.700s] [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/log_macros.h:20:61:[m[K [01;36m[Knote: [m[K‘[01m[K#pragma message: Detected rclcpp.hpp → ROS2 logging enabled[m[K’
+[51.700s]    20 | #pragma message("Detected rclcpp.hpp → ROS2 logging enabled"[01;36m[K)[m[K
+[51.700s]       |                                                             [01;36m[K^[m[K
+[64.013s] [ 87%] [32mBuilding CXX object CMakeFiles/stereo_h265_node.dir/src/h265_decoder.cpp.o[0m
+[67.613s] [100%] [32m[1mLinking CXX executable stereo_h265_node[0m
+[68.388s] [100%] Built target stereo_h265_node
+[68.400s] Invoked command in '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet -- -j6 -l6
+[68.412s] Invoking command in '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet
+[68.420s] -- Install configuration: "Release"
+[68.420s] -- Installing: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/lib/ros2_h265_stereonet/stereo_h265_node
+[68.422s] -- Set runtime path of "/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/lib/ros2_h265_stereonet/stereo_h265_node" to ""
+[68.422s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/launch
+[68.422s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/launch/stereo_h265.launch.py
+[68.423s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/config
+[68.423s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/config/vita_calib.yaml
+[68.423s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/config/stereo_h265_params.yaml
+[68.423s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ament_index/resource_index/package_run_dependencies/ros2_h265_stereonet
+[68.423s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ament_index/resource_index/parent_prefix_path/ros2_h265_stereonet
+[68.423s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/environment/ament_prefix_path.sh
+[68.423s] -- Installing: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/environment/ament_prefix_path.dsv
+[68.423s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/environment/path.sh
+[68.424s] -- Installing: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/environment/path.dsv
+[68.424s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/local_setup.bash
+[68.424s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/local_setup.sh
+[68.424s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/local_setup.zsh
+[68.424s] -- Installing: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/local_setup.dsv
+[68.424s] -- Installing: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/package.dsv
+[68.424s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ament_index/resource_index/packages/ros2_h265_stereonet
+[68.424s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/cmake/ros2_h265_stereonetConfig.cmake
+[68.425s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/cmake/ros2_h265_stereonetConfig-version.cmake
+[68.425s] -- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/package.xml
+[68.426s] Invoked command in '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet

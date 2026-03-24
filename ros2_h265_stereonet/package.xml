@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>ros2_h265_stereonet</name>
+  <version>1.0.0</version>
+  <description>
+    ROS2 node for stereo depth estimation from H.265 compressed video streams.
+    Subscribes to foxglove_msgs/CompressedVideo topics for left/right cameras,
+    decodes H.265 via FFmpeg, and runs StereoNet BPU inference.
+  </description>
+  <maintainer email="developer@example.com">developer</maintainer>
+  <license>Apache License 2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>foxglove_msgs</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

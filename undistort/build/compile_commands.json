@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/sunrise/robot/hobot_stereonet/undistort/build",
+  "command": "/usr/bin/aarch64-linux-gnu-g++  -isystem /usr/include/opencv4 -g -std=gnu++11 -o CMakeFiles/undistort_app.dir/main.cpp.o -c /home/sunrise/robot/hobot_stereonet/undistort/main.cpp",
+  "file": "/home/sunrise/robot/hobot_stereonet/undistort/main.cpp"
+}
+]

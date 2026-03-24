@@ -1,0 +1,72 @@
+stereo_h265_node:
+  ros__parameters:
+    # ======================== Model ========================
+    model_path: "/home/sunrise/robot/hobot_stereonet/config/dstereo_s100_320_640_352_v2.4.hbm"
+    post_version: "auto"
+    uncertainty_th: -0.10
+
+    # ======================== Topics =======================
+    left_topic: "/image_left_raw/h265"
+    right_topic: "/image_right_raw/h265"
+
+    # ======================== Sync =========================
+    # Timestamp tolerance for left-right frame matching (ms)
+    sync_tolerance_ms: 10.0
+    # Max buffered frames per camera before oldest are evicted
+    max_buffer_size: 10
+    # FFmpeg HEVC: drop AU until VPS/SPS/PPS or IRAP (16–21), same idea as demo hb decoder
+    hevc_require_entry_point: true
+    # Inference thread number (use 1 unless you know Stereonet/BPU is safe to call concurrently)
+    infer_thread_num: 1
+
+    # ======================== Camera Intrinsic =============
+    # Priority: calib_yaml_file > intrinsic_file > direct params
+    #
+    # Option 1 (recommended): D-Robotics stereo calibration YAML
+    #   Auto-extracts left-camera intrinsics + computes baseline from extrinsics
+    calib_yaml_file: "config/vita_calib.yaml"
+    # false: scaled K undistort (same as tutorial: scale by width, cy crop fix, D unchanged)
+    # true: OpenCV stereoRectify (epipolar align; may fail on some calibs)
+    undistort_use_stereo_rectify: false
+    # initUndistortRectifyMap：仅用 D 的前 N 项。8 参有理模型 + 极大 k1 在部分 OpenCV 上会 SIGSEGV，默认 5。
+    # 设为 0 表示使用 YAML 中完整 D（若再崩溃需换 OpenCV 或鱼眼模型）
+    undistort_dist_coeff_count: 5
+    # 为 true 时始终用零畸变建图（不调 OpenCV 畸变逆映射，仅缩放 K）
+    undistort_force_no_distortion: false
+    # 任一眼截断后 |k1| 超过该值则左右眼均改用零 D（默认 2.0；左目 k1≈8 会触发）。<=0 关闭。
+    undistort_extreme_k1_threshold: 2.0
+    #
+    # Option 2: simple "fx fy cx cy baseline" text file
+    intrinsic_file: ""
+    #
+    # Option 3: specify directly
+    fx: 0.0
+    fy: 0.0
+    cx: 0.0
+    cy: 0.0
+    baseline: 0.0
+
+    # ======================== Publish (Topic) ================
+    publish_depth: true
+    publish_pointcloud: true
+    publish_visual: false
+    publish_disp: false
+    depth_topic: "~/stereonet_depth"
+    pointcloud_topic: "~/stereonet_pointcloud2"
+    visual_topic: "~/stereonet_visual"
+    disp_topic: "~/stereonet_disp"
+    frame_id: "camera_link"
+    pointcloud_downsample_step: 2    # downsample step for point cloud
+    pointcloud_depth_max: 5.0        # max depth for point cloud (m)
+
+    # ======================== Save (File) ==================
+    result_dir: "./result"
+    save_results: true
+    save_freq: 1           # save every N-th frame
+    max_frames: -1         # -1 = unlimited
+    save_visual: true
+    save_pcd: true
+    save_disp: true
+    save_depth: true
+    save_uncert: false
+    save_epipolar: false

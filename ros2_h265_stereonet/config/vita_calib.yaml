@@ -1,0 +1,150 @@
+label: vita-01b2
+id: -1
+cameras:
+  - camera:
+      id: 0
+      label: stereo_left
+      line-delay-nanoseconds: 0
+      image_height: 1080
+      image_width: 1920
+      type: pinhole
+      intrinsics:
+        rows: 1
+        cols: 4
+        data: [805.299072, 805.879883, 959.196655, 538.812378]
+      distortion:
+        type: radial_tangential
+        parameters:
+          rows: 1
+          cols: 8
+          data: [7.99858522, 3.08304286, -8.16457978e-05, 0.000179127994, 0.0763648525, 8.38899517, 5.9210844, 0.559656382]
+      Extr_B_C:
+        orientation: [-0.49620274649516249, 0.50584466486193891, -0.50640913944811838, 0.49137947951128985]
+        translation: [0.24471889523405452, 0.034999920538423004, 0.13352849660228427]
+        time_delay: 0
+  - camera:
+      id: 1
+      label: stereo_right
+      line-delay-nanoseconds: 0
+      image_height: 1080
+      image_width: 1920
+      type: pinhole
+      intrinsics:
+        rows: 1
+        cols: 4
+        data: [798.920288, 799.557861, 961.578674, 536.490967]
+      distortion:
+        type: radial_tangential
+        parameters:
+          rows: 1
+          cols: 8
+          data: [1.3492794, 0.34958744, 6.18777995e-05, 5.18457018e-05, 0.00683445996, 1.72249138, 0.751361907, 0.056414485]
+      Extr_B_C:
+        orientation: [-0.49319658123520749, 0.50448223829413952, -0.51018472714337337, 0.49190074984012816]
+        translation: [0.24432479926749509, -0.033828257692075564, 0.13362487823880237]
+        time_delay: 0
+  - camera:
+      id: 2
+      label: infrared
+      line-delay-nanoseconds: 0
+      image_height: 480
+      image_width: 640
+      type: pinhole
+      intrinsics:
+        rows: 1
+        cols: 4
+        data: [400, 400, 320, 480]
+      distortion:
+        type: radial_tangential
+        parameters:
+          rows: 1
+          cols: 4
+          data: [0, 0, 0, 0]
+      Extr_B_C:
+        orientation: [1, 0, 0, 0]
+        translation: [0, 0, 0]
+        time_delay: 0
+imus:
+  - imu:
+      id: 0
+      label: body_imu
+      params:
+        max_imu_dt: 0.01
+        acc_max: 176
+        gyr_max: 17
+        gyr_n: 0.0040000000000000001
+        acc_n: 0.080000000000000002
+        gyr_w: 1.9999999999999999e-06
+        acc_w: 4.0000000000000003e-05
+        g: 9.8100699999999996
+        imu_rate: 200
+      initialization:
+        velocity: [0, 0, 0]
+        gyr_bias: [0, 0, 0]
+        acc_bias: [0, 0, 0]
+        velocity_sigma: 2
+        gyr_bias_sigma: 0.01
+        acc_bias_sigma: 0.10000000000000001
+      Extr_B_I:
+        orientation: [0.70710678118654746, 0, 0, -0.70710678118654746]
+        translation: [-0.071919999999999998, 0, 0.04999]
+        time_delay: 0
+  - imu:
+      id: 1
+      label: lidar_imu
+      params:
+        max_imu_dt: 0.01
+        acc_max: 176
+        gyr_max: 17
+        gyr_n: 0.29999999999999999
+        acc_n: 0.29999999999999999
+        gyr_w: 0.0001
+        acc_w: 0.0001
+        g: 9.8100699999999996
+        imu_rate: 200
+      initialization:
+        velocity: [0, 0, 0]
+        gyr_bias: [0, 0, 0]
+        acc_bias: [0, 0, 0]
+        velocity_sigma: 2
+        gyr_bias_sigma: 0.01
+        acc_bias_sigma: 0.10000000000000001
+      Extr_B_I:
+        orientation: [0, 0, 0, 1]
+        translation: [0.18543999999999999, 0.016990000000000002, 0.18129000000000001]
+        time_delay: 0
+      associated_sensor: lidar0
+lidars:
+  - lidar:
+      id: 0
+      label: lidar
+      Extr_B_L:
+        orientation: [0, 0, 0, 1]
+        translation: [0.17288000000000001, 0, 0.21834999999999999]
+        time_delay: 0
+      associated_sensor: imu1
+uwbs:
+  - uwb:
+      id: 0
+      label: anchor
+      Extr_B_U:
+        orientation: [1, 0, 0, 0]
+        translation: [0.23494000000000001, 0, 0.20652000000000001]
+        time_delay: 0
+joints:
+  - joint:
+      id: 12
+      label: head_pitch
+      zero_offset: 0
+      Extr_B_J:
+        orientation: [1, 0, 0, 0]
+        translation: [0, 0, 0.13052]
+        time_delay: 0
+  - joint:
+      id: 13
+      label: head_yaw
+      zero_offset: 0
+      Extr_B_J:
+        orientation: [1, 0, 0, 0]
+        translation: [0.17288000000000001, 0, 0]
+        time_delay: 0

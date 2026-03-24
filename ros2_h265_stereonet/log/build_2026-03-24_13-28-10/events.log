@@ -1,0 +1,399 @@
+[0.000000] (-) TimerEvent: {}
+[0.000177] (ros2_h265_stereonet) JobQueued: {'identifier': 'ros2_h265_stereonet', 'dependencies': OrderedDict()}
+[0.000824] (ros2_h265_stereonet) JobStarted: {'identifier': 'ros2_h265_stereonet'}
+[0.013084] (ros2_h265_stereonet) JobProgress: {'identifier': 'ros2_h265_stereonet', 'progress': 'cmake'}
+[0.014771] (ros2_h265_stereonet) Command: {'cmd': ['/usr/bin/cmake', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet', '-DCMAKE_INSTALL_PREFIX=/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet'], 'cwd': '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('VSCODE_CWD', '/home/sunrise'), ('VSCODE_ESM_ENTRYPOINT', 'vs/workbench/api/node/extensionHostProcess'), ('USER', 'sunrise'), ('SSH_CLIENT', '192.168.11.47 58104 22'), ('LC_TIME', 'en_US.UTF-8'), ('VSCODE_NLS_CONFIG', '{"userLocale":"en","osLocale":"en","resolvedLanguage":"en","defaultMessagesFile":"/home/sunrise/.cursor-server/bin/linux-arm64/68fbec5aed9da587d1c6a64172792f505bafa250/out/nls.messages.json","locale":"en","availableLanguages":{}}'), ('CI', '1'), ('VSCODE_HANDLES_UNCAUGHT_ERRORS', 'true'), ('XDG_SESSION_TYPE', 'tty'), ('HOBOT_ROOTFS_DIR', '/usr/hobot'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/home/sunrise/livox_ws/install/livox_sdk2/lib:/home/sunrise/livox_ws/install/livox_ros_driver2/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib:/usr/lib/aarch64-linux-gnu:/lib/aarch64-linux-gnu:/app/lib:/app/pub/lib:/middleware/lib:/middleware/pub/lib:/usr/lib/gstreamer'), ('BROWSER', '/home/sunrise/.cursor-server/bin/linux-arm64/68fbec5aed9da587d1c6a64172792f505bafa250/bin/helpers/browser.sh'), ('MOTD_SHOWN', 'pam'), ('HOME', '/home/sunrise'), ('OLDPWD', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet'), ('VSCODE_IPC_HOOK_CLI', '/run/user/1000/vscode-ipc-02e81f16-0390-42b2-9608-2064cb93a741.sock'), ('ROS_PYTHON_VERSION', '3'), ('LC_MONETARY', 'en_US.UTF-8'), ('NO_COLOR', '1'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('VSCODE_L10N_BUNDLE_LOCATION', ''), ('COLCON_PREFIX_PATH', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install:/home/sunrise/livox_ws/install'), ('ROS_DISTRO', 'humble'), ('OVSX_REGISTRY_URL', 'https://open-vsx.org'), ('LOGNAME', 'sunrise'), ('FORCE_COLOR', '0'), ('VSCODE_HANDLES_SIGPIPE', 'true'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'dumb'), ('XDG_SESSION_ID', '21'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/sunrise/.local/bin:/home/sunrise/.cursor-server/bin/linux-arm64/68fbec5aed9da587d1c6a64172792f505bafa250/bin/remote-cli:/home/sunrise/.local/bin:/opt/ros/humble/bin:/home/sunrise/.cursor-server/bin/linux-arm64/68fbec5aed9da587d1c6a64172792f505bafa250/bin/remote-cli:/home/sunrise/.local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/hobot/bin:/app/bin:/middleware/bin:/var/busybox:/usr/local/sbin:/usr/local/bin:/usr/games:/usr/local/games:/snap/bin'), ('VSCODE_AGENT_FOLDER', '/home/sunrise/.cursor-server'), ('PAPERSIZE', 'a4'), ('LC_ADDRESS', 'en_US.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('CURSOR_AGENT', '1'), ('LANG', 'en_US.UTF-8'), ('LC_TELEPHONE', 'en_US.UTF-8'), ('LOGLEVEL', '5'), ('LS_COLORS', ''), ('AMENT_PREFIX_PATH', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet:/home/sunrise/livox_ws/install/livox_ros_driver2:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'en_US.UTF-8'), ('VSCODE_SERVER_SHUTDOWN_TIMEOUT', '300'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'en_US.UTF-8'), ('LC_IDENTIFICATION', 'en_US.UTF-8'), ('PWD', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet'), ('LC_ALL', 'en_US.UTF-8'), ('SSH_CONNECTION', '192.168.11.47 58104 192.168.11.165 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/sunrise/livox_ws/install/livox_ros_driver2/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'en_US.UTF-8'), ('TZ', 'CST-08:00'), ('LC_PAPER', 'en_US.UTF-8'), ('COLCON', '1'), ('_ZO_DOCTOR', '0'), ('LD_HWCAP_MASK', '0x00000000'), ('CMAKE_PREFIX_PATH', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet:/home/sunrise/livox_ws/install/livox_ros_driver2:/opt/ros/humble')]), 'shell': False}
+[0.030166] (ros2_h265_stereonet) StdoutLine: {'line': b'-- ros2_h265_stereonet build platform S100\n'}
+[0.030797] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.12 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[0.099609] (-) TimerEvent: {}
+[0.199846] (-) TimerEvent: {}
+[0.234877] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Found rclcpp: 16.0.17 (/opt/ros/humble/share/rclcpp/cmake)\n'}
+[0.268722] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Found rosidl_generator_c: 3.1.8 (/opt/ros/humble/share/rosidl_generator_c/cmake)\n'}
+[0.271941] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[0.279781] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Found rosidl_generator_cpp: 3.1.8 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)\n'}
+[0.292384] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[0.299957] (-) TimerEvent: {}
+[0.308800] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[0.351438] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)\n'}
+[0.353317] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Found rmw_fastrtps_cpp: 6.2.9 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)\n'}
+[0.400070] (-) TimerEvent: {}
+[0.458861] (ros2_h265_stereonet) StdoutLine: {'line': b"-- Using RMW implementation 'rmw_fastrtps_cpp' as default\n"}
+[0.500190] (-) TimerEvent: {}
+[0.527213] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Found sensor_msgs: 4.9.0 (/opt/ros/humble/share/sensor_msgs/cmake)\n'}
+[0.567343] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Found foxglove_msgs: 3.2.4 (/opt/ros/humble/share/foxglove_msgs/cmake)\n'}
+[0.600300] (-) TimerEvent: {}
+[0.604541] (ros2_h265_stereonet) StdoutLine: {'line': b'-- SYS_ROOT is \n'}
+[0.604936] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Preferred ROS distribution: humble\n'}
+[0.700410] (-) TimerEvent: {}
+[0.708476] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Configuring done\n'}
+[0.737503] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Generating done\n'}
+[0.746866] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Build files have been written to: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet\n'}
+[0.756968] (ros2_h265_stereonet) CommandEnded: {'returncode': 0}
+[0.757887] (ros2_h265_stereonet) JobProgress: {'identifier': 'ros2_h265_stereonet', 'progress': 'build'}
+[0.759100] (ros2_h265_stereonet) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet', '--', '-j6', '-l6'], 'cwd': '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('VSCODE_CWD', '/home/sunrise'), ('VSCODE_ESM_ENTRYPOINT', 'vs/workbench/api/node/extensionHostProcess'), ('USER', 'sunrise'), ('SSH_CLIENT', '192.168.11.47 58104 22'), ('LC_TIME', 'en_US.UTF-8'), ('VSCODE_NLS_CONFIG', '{"userLocale":"en","osLocale":"en","resolvedLanguage":"en","defaultMessagesFile":"/home/sunrise/.cursor-server/bin/linux-arm64/68fbec5aed9da587d1c6a64172792f505bafa250/out/nls.messages.json","locale":"en","availableLanguages":{}}'), ('CI', '1'), ('VSCODE_HANDLES_UNCAUGHT_ERRORS', 'true'), ('XDG_SESSION_TYPE', 'tty'), ('HOBOT_ROOTFS_DIR', '/usr/hobot'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/home/sunrise/livox_ws/install/livox_sdk2/lib:/home/sunrise/livox_ws/install/livox_ros_driver2/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib:/usr/lib/aarch64-linux-gnu:/lib/aarch64-linux-gnu:/app/lib:/app/pub/lib:/middleware/lib:/middleware/pub/lib:/usr/lib/gstreamer'), ('BROWSER', '/home/sunrise/.cursor-server/bin/linux-arm64/68fbec5aed9da587d1c6a64172792f505bafa250/bin/helpers/browser.sh'), ('MOTD_SHOWN', 'pam'), ('HOME', '/home/sunrise'), ('OLDPWD', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet'), ('VSCODE_IPC_HOOK_CLI', '/run/user/1000/vscode-ipc-02e81f16-0390-42b2-9608-2064cb93a741.sock'), ('ROS_PYTHON_VERSION', '3'), ('LC_MONETARY', 'en_US.UTF-8'), ('NO_COLOR', '1'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('VSCODE_L10N_BUNDLE_LOCATION', ''), ('COLCON_PREFIX_PATH', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install:/home/sunrise/livox_ws/install'), ('ROS_DISTRO', 'humble'), ('OVSX_REGISTRY_URL', 'https://open-vsx.org'), ('LOGNAME', 'sunrise'), ('FORCE_COLOR', '0'), ('VSCODE_HANDLES_SIGPIPE', 'true'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'dumb'), ('XDG_SESSION_ID', '21'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/sunrise/.local/bin:/home/sunrise/.cursor-server/bin/linux-arm64/68fbec5aed9da587d1c6a64172792f505bafa250/bin/remote-cli:/home/sunrise/.local/bin:/opt/ros/humble/bin:/home/sunrise/.cursor-server/bin/linux-arm64/68fbec5aed9da587d1c6a64172792f505bafa250/bin/remote-cli:/home/sunrise/.local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/hobot/bin:/app/bin:/middleware/bin:/var/busybox:/usr/local/sbin:/usr/local/bin:/usr/games:/usr/local/games:/snap/bin'), ('VSCODE_AGENT_FOLDER', '/home/sunrise/.cursor-server'), ('PAPERSIZE', 'a4'), ('LC_ADDRESS', 'en_US.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('CURSOR_AGENT', '1'), ('LANG', 'en_US.UTF-8'), ('LC_TELEPHONE', 'en_US.UTF-8'), ('LOGLEVEL', '5'), ('LS_COLORS', ''), ('AMENT_PREFIX_PATH', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet:/home/sunrise/livox_ws/install/livox_ros_driver2:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'en_US.UTF-8'), ('VSCODE_SERVER_SHUTDOWN_TIMEOUT', '300'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'en_US.UTF-8'), ('LC_IDENTIFICATION', 'en_US.UTF-8'), ('PWD', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet'), ('LC_ALL', 'en_US.UTF-8'), ('SSH_CONNECTION', '192.168.11.47 58104 192.168.11.165 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/sunrise/livox_ws/install/livox_ros_driver2/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'en_US.UTF-8'), ('TZ', 'CST-08:00'), ('LC_PAPER', 'en_US.UTF-8'), ('COLCON', '1'), ('_ZO_DOCTOR', '0'), ('LD_HWCAP_MASK', '0x00000000'), ('CMAKE_PREFIX_PATH', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet:/home/sunrise/livox_ws/install/livox_ros_driver2:/opt/ros/humble')]), 'shell': False}
+[0.800531] (-) TimerEvent: {}
+[0.872668] (ros2_h265_stereonet) StdoutLine: {'line': b'Consolidate compiler generated dependencies of target stereo_h265_node\n'}
+[0.895387] (ros2_h265_stereonet) StdoutLine: {'line': b'[ 12%] Building CXX object CMakeFiles/stereo_h265_node.dir/src/stereo_h265_node.cpp.o\n'}
+[0.900643] (-) TimerEvent: {}
+[1.000907] (-) TimerEvent: {}
+[1.101157] (-) TimerEvent: {}
+[1.201416] (-) TimerEvent: {}
+[1.301656] (-) TimerEvent: {}
+[1.401906] (-) TimerEvent: {}
+[1.502160] (-) TimerEvent: {}
+[1.602445] (-) TimerEvent: {}
+[1.702695] (-) TimerEvent: {}
+[1.802927] (-) TimerEvent: {}
+[1.903165] (-) TimerEvent: {}
+[2.003407] (-) TimerEvent: {}
+[2.103650] (-) TimerEvent: {}
+[2.203888] (-) TimerEvent: {}
+[2.304148] (-) TimerEvent: {}
+[2.404398] (-) TimerEvent: {}
+[2.504669] (-) TimerEvent: {}
+[2.604933] (-) TimerEvent: {}
+[2.705162] (-) TimerEvent: {}
+[2.805412] (-) TimerEvent: {}
+[2.905666] (-) TimerEvent: {}
+[3.005920] (-) TimerEvent: {}
+[3.106169] (-) TimerEvent: {}
+[3.206442] (-) TimerEvent: {}
+[3.306696] (-) TimerEvent: {}
+[3.406945] (-) TimerEvent: {}
+[3.507195] (-) TimerEvent: {}
+[3.607586] (-) TimerEvent: {}
+[3.707833] (-) TimerEvent: {}
+[3.808092] (-) TimerEvent: {}
+[3.908342] (-) TimerEvent: {}
+[4.008608] (-) TimerEvent: {}
+[4.108858] (-) TimerEvent: {}
+[4.209114] (-) TimerEvent: {}
+[4.309382] (-) TimerEvent: {}
+[4.409639] (-) TimerEvent: {}
+[4.509897] (-) TimerEvent: {}
+[4.610155] (-) TimerEvent: {}
+[4.710428] (-) TimerEvent: {}
+[4.810819] (-) TimerEvent: {}
+[4.911070] (-) TimerEvent: {}
+[5.011309] (-) TimerEvent: {}
+[5.111547] (-) TimerEvent: {}
+[5.211798] (-) TimerEvent: {}
+[5.312056] (-) TimerEvent: {}
+[5.412309] (-) TimerEvent: {}
+[5.512569] (-) TimerEvent: {}
+[5.612824] (-) TimerEvent: {}
+[5.713080] (-) TimerEvent: {}
+[5.813330] (-) TimerEvent: {}
+[5.913724] (-) TimerEvent: {}
+[6.013982] (-) TimerEvent: {}
+[6.114242] (-) TimerEvent: {}
+[6.214499] (-) TimerEvent: {}
+[6.314755] (-) TimerEvent: {}
+[6.415018] (-) TimerEvent: {}
+[6.515273] (-) TimerEvent: {}
+[6.615543] (-) TimerEvent: {}
+[6.715794] (-) TimerEvent: {}
+[6.816052] (-) TimerEvent: {}
+[6.916313] (-) TimerEvent: {}
+[7.016577] (-) TimerEvent: {}
+[7.116826] (-) TimerEvent: {}
+[7.217060] (-) TimerEvent: {}
+[7.317309] (-) TimerEvent: {}
+[7.417549] (-) TimerEvent: {}
+[7.517797] (-) TimerEvent: {}
+[7.618037] (-) TimerEvent: {}
+[7.711042] (ros2_h265_stereonet) StderrLine: {'line': b'In file included from /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/stereonet_process.h:23,\n'}
+[7.711537] (ros2_h265_stereonet) StderrLine: {'line': b'                 from /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/src/stereo_h265_node.cpp:29:\n'}
+[7.711803] (ros2_h265_stereonet) StderrLine: {'line': b'/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/log_macros.h:20:61: note: \xe2\x80\x98#pragma message: Detected rclcpp.hpp \xe2\x86\x92 ROS2 logging enabled\xe2\x80\x99\n'}
+[7.711996] (ros2_h265_stereonet) StderrLine: {'line': b'   20 | #pragma message("Detected rclcpp.hpp \xe2\x86\x92 ROS2 logging enabled")\n'}
+[7.712159] (ros2_h265_stereonet) StderrLine: {'line': b'      |                                                             ^\n'}
+[7.718137] (-) TimerEvent: {}
+[7.818382] (-) TimerEvent: {}
+[7.918616] (-) TimerEvent: {}
+[8.018842] (-) TimerEvent: {}
+[8.119083] (-) TimerEvent: {}
+[8.219336] (-) TimerEvent: {}
+[8.319576] (-) TimerEvent: {}
+[8.419829] (-) TimerEvent: {}
+[8.520076] (-) TimerEvent: {}
+[8.620325] (-) TimerEvent: {}
+[8.720577] (-) TimerEvent: {}
+[8.820824] (-) TimerEvent: {}
+[8.921082] (-) TimerEvent: {}
+[9.021333] (-) TimerEvent: {}
+[9.121587] (-) TimerEvent: {}
+[9.221849] (-) TimerEvent: {}
+[9.322115] (-) TimerEvent: {}
+[9.422381] (-) TimerEvent: {}
+[9.522631] (-) TimerEvent: {}
+[9.623042] (-) TimerEvent: {}
+[9.723284] (-) TimerEvent: {}
+[9.823533] (-) TimerEvent: {}
+[9.923760] (-) TimerEvent: {}
+[10.023991] (-) TimerEvent: {}
+[10.124217] (-) TimerEvent: {}
+[10.224443] (-) TimerEvent: {}
+[10.324673] (-) TimerEvent: {}
+[10.424899] (-) TimerEvent: {}
+[10.525136] (-) TimerEvent: {}
+[10.625381] (-) TimerEvent: {}
+[10.725629] (-) TimerEvent: {}
+[10.825866] (-) TimerEvent: {}
+[10.926115] (-) TimerEvent: {}
+[11.026387] (-) TimerEvent: {}
+[11.126627] (-) TimerEvent: {}
+[11.226869] (-) TimerEvent: {}
+[11.327117] (-) TimerEvent: {}
+[11.427370] (-) TimerEvent: {}
+[11.527633] (-) TimerEvent: {}
+[11.627884] (-) TimerEvent: {}
+[11.728129] (-) TimerEvent: {}
+[11.828381] (-) TimerEvent: {}
+[11.928628] (-) TimerEvent: {}
+[12.028871] (-) TimerEvent: {}
+[12.129120] (-) TimerEvent: {}
+[12.229361] (-) TimerEvent: {}
+[12.329607] (-) TimerEvent: {}
+[12.429859] (-) TimerEvent: {}
+[12.530094] (-) TimerEvent: {}
+[12.630347] (-) TimerEvent: {}
+[12.730577] (-) TimerEvent: {}
+[12.830805] (-) TimerEvent: {}
+[12.931040] (-) TimerEvent: {}
+[13.031295] (-) TimerEvent: {}
+[13.131550] (-) TimerEvent: {}
+[13.231804] (-) TimerEvent: {}
+[13.332057] (-) TimerEvent: {}
+[13.432309] (-) TimerEvent: {}
+[13.532557] (-) TimerEvent: {}
+[13.632808] (-) TimerEvent: {}
+[13.733055] (-) TimerEvent: {}
+[13.833308] (-) TimerEvent: {}
+[13.933555] (-) TimerEvent: {}
+[14.033804] (-) TimerEvent: {}
+[14.134057] (-) TimerEvent: {}
+[14.234310] (-) TimerEvent: {}
+[14.334579] (-) TimerEvent: {}
+[14.434828] (-) TimerEvent: {}
+[14.535081] (-) TimerEvent: {}
+[14.635330] (-) TimerEvent: {}
+[14.735571] (-) TimerEvent: {}
+[14.835831] (-) TimerEvent: {}
+[14.936075] (-) TimerEvent: {}
+[15.036314] (-) TimerEvent: {}
+[15.136557] (-) TimerEvent: {}
+[15.236805] (-) TimerEvent: {}
+[15.337064] (-) TimerEvent: {}
+[15.437304] (-) TimerEvent: {}
+[15.537564] (-) TimerEvent: {}
+[15.637802] (-) TimerEvent: {}
+[15.738051] (-) TimerEvent: {}
+[15.838310] (-) TimerEvent: {}
+[15.938563] (-) TimerEvent: {}
+[16.038814] (-) TimerEvent: {}
+[16.139205] (-) TimerEvent: {}
+[16.239462] (-) TimerEvent: {}
+[16.339713] (-) TimerEvent: {}
+[16.439981] (-) TimerEvent: {}
+[16.540229] (-) TimerEvent: {}
+[16.640481] (-) TimerEvent: {}
+[16.740732] (-) TimerEvent: {}
+[16.840989] (-) TimerEvent: {}
+[16.941250] (-) TimerEvent: {}
+[17.041512] (-) TimerEvent: {}
+[17.141768] (-) TimerEvent: {}
+[17.242034] (-) TimerEvent: {}
+[17.342306] (-) TimerEvent: {}
+[17.442559] (-) TimerEvent: {}
+[17.542825] (-) TimerEvent: {}
+[17.643087] (-) TimerEvent: {}
+[17.743364] (-) TimerEvent: {}
+[17.843623] (-) TimerEvent: {}
+[17.943883] (-) TimerEvent: {}
+[18.044136] (-) TimerEvent: {}
+[18.144403] (-) TimerEvent: {}
+[18.244653] (-) TimerEvent: {}
+[18.344922] (-) TimerEvent: {}
+[18.445166] (-) TimerEvent: {}
+[18.545425] (-) TimerEvent: {}
+[18.645676] (-) TimerEvent: {}
+[18.745939] (-) TimerEvent: {}
+[18.846189] (-) TimerEvent: {}
+[18.946487] (-) TimerEvent: {}
+[19.046739] (-) TimerEvent: {}
+[19.147009] (-) TimerEvent: {}
+[19.247252] (-) TimerEvent: {}
+[19.347521] (-) TimerEvent: {}
+[19.447781] (-) TimerEvent: {}
+[19.548040] (-) TimerEvent: {}
+[19.648295] (-) TimerEvent: {}
+[19.748578] (-) TimerEvent: {}
+[19.848840] (-) TimerEvent: {}
+[19.949119] (-) TimerEvent: {}
+[20.049362] (-) TimerEvent: {}
+[20.149603] (-) TimerEvent: {}
+[20.249847] (-) TimerEvent: {}
+[20.350090] (-) TimerEvent: {}
+[20.450348] (-) TimerEvent: {}
+[20.550584] (-) TimerEvent: {}
+[20.650826] (-) TimerEvent: {}
+[20.751070] (-) TimerEvent: {}
+[20.851313] (-) TimerEvent: {}
+[20.951546] (-) TimerEvent: {}
+[21.051817] (-) TimerEvent: {}
+[21.152071] (-) TimerEvent: {}
+[21.252323] (-) TimerEvent: {}
+[21.352552] (-) TimerEvent: {}
+[21.452798] (-) TimerEvent: {}
+[21.553045] (-) TimerEvent: {}
+[21.653292] (-) TimerEvent: {}
+[21.753547] (-) TimerEvent: {}
+[21.853945] (-) TimerEvent: {}
+[21.954193] (-) TimerEvent: {}
+[22.054458] (-) TimerEvent: {}
+[22.154705] (-) TimerEvent: {}
+[22.254944] (-) TimerEvent: {}
+[22.355201] (-) TimerEvent: {}
+[22.455456] (-) TimerEvent: {}
+[22.555703] (-) TimerEvent: {}
+[22.655950] (-) TimerEvent: {}
+[22.756193] (-) TimerEvent: {}
+[22.856423] (-) TimerEvent: {}
+[22.956668] (-) TimerEvent: {}
+[23.056914] (-) TimerEvent: {}
+[23.157167] (-) TimerEvent: {}
+[23.257421] (-) TimerEvent: {}
+[23.357679] (-) TimerEvent: {}
+[23.457918] (-) TimerEvent: {}
+[23.558168] (-) TimerEvent: {}
+[23.658460] (-) TimerEvent: {}
+[23.758708] (-) TimerEvent: {}
+[23.858964] (-) TimerEvent: {}
+[23.959224] (-) TimerEvent: {}
+[24.059473] (-) TimerEvent: {}
+[24.159723] (-) TimerEvent: {}
+[24.259979] (-) TimerEvent: {}
+[24.360232] (-) TimerEvent: {}
+[24.460495] (-) TimerEvent: {}
+[24.560756] (-) TimerEvent: {}
+[24.661022] (-) TimerEvent: {}
+[24.761295] (-) TimerEvent: {}
+[24.861570] (-) TimerEvent: {}
+[24.961829] (-) TimerEvent: {}
+[25.062084] (-) TimerEvent: {}
+[25.162362] (-) TimerEvent: {}
+[25.262613] (-) TimerEvent: {}
+[25.362867] (-) TimerEvent: {}
+[25.463101] (-) TimerEvent: {}
+[25.563334] (-) TimerEvent: {}
+[25.663571] (-) TimerEvent: {}
+[25.763830] (-) TimerEvent: {}
+[25.864084] (-) TimerEvent: {}
+[25.964325] (-) TimerEvent: {}
+[26.064579] (-) TimerEvent: {}
+[26.164852] (-) TimerEvent: {}
+[26.265102] (-) TimerEvent: {}
+[26.365347] (-) TimerEvent: {}
+[26.465595] (-) TimerEvent: {}
+[26.565846] (-) TimerEvent: {}
+[26.666082] (-) TimerEvent: {}
+[26.766326] (-) TimerEvent: {}
+[26.866572] (-) TimerEvent: {}
+[26.966813] (-) TimerEvent: {}
+[27.067053] (-) TimerEvent: {}
+[27.167428] (-) TimerEvent: {}
+[27.267669] (-) TimerEvent: {}
+[27.367915] (-) TimerEvent: {}
+[27.468162] (-) TimerEvent: {}
+[27.568407] (-) TimerEvent: {}
+[27.668652] (-) TimerEvent: {}
+[27.768904] (-) TimerEvent: {}
+[27.869153] (-) TimerEvent: {}
+[27.969398] (-) TimerEvent: {}
+[28.069632] (-) TimerEvent: {}
+[28.169901] (-) TimerEvent: {}
+[28.270134] (-) TimerEvent: {}
+[28.370508] (-) TimerEvent: {}
+[28.470742] (-) TimerEvent: {}
+[28.570974] (-) TimerEvent: {}
+[28.671198] (-) TimerEvent: {}
+[28.771438] (-) TimerEvent: {}
+[28.871691] (-) TimerEvent: {}
+[28.971951] (-) TimerEvent: {}
+[29.072222] (-) TimerEvent: {}
+[29.172507] (-) TimerEvent: {}
+[29.272767] (-) TimerEvent: {}
+[29.373035] (-) TimerEvent: {}
+[29.473283] (-) TimerEvent: {}
+[29.573555] (-) TimerEvent: {}
+[29.673812] (-) TimerEvent: {}
+[29.774084] (-) TimerEvent: {}
+[29.874329] (-) TimerEvent: {}
+[29.974588] (-) TimerEvent: {}
+[30.074836] (-) TimerEvent: {}
+[30.175092] (-) TimerEvent: {}
+[30.275332] (-) TimerEvent: {}
+[30.375591] (-) TimerEvent: {}
+[30.475830] (-) TimerEvent: {}
+[30.576092] (-) TimerEvent: {}
+[30.676338] (-) TimerEvent: {}
+[30.776599] (-) TimerEvent: {}
+[30.876852] (-) TimerEvent: {}
+[30.977113] (-) TimerEvent: {}
+[31.077368] (-) TimerEvent: {}
+[31.177638] (-) TimerEvent: {}
+[31.277887] (-) TimerEvent: {}
+[31.378161] (-) TimerEvent: {}
+[31.478437] (-) TimerEvent: {}
+[31.578698] (-) TimerEvent: {}
+[31.678954] (-) TimerEvent: {}
+[31.779221] (-) TimerEvent: {}
+[31.879469] (-) TimerEvent: {}
+[31.979733] (-) TimerEvent: {}
+[32.079975] (-) TimerEvent: {}
+[32.180232] (-) TimerEvent: {}
+[32.280482] (-) TimerEvent: {}
+[32.380741] (-) TimerEvent: {}
+[32.481029] (-) TimerEvent: {}
+[32.581285] (-) TimerEvent: {}
+[32.681535] (-) TimerEvent: {}
+[32.761784] (ros2_h265_stereonet) StdoutLine: {'line': b'[ 25%] Linking CXX executable stereo_h265_node\n'}
+[32.781649] (-) TimerEvent: {}
+[32.881919] (-) TimerEvent: {}
+[32.982189] (-) TimerEvent: {}
+[33.082471] (-) TimerEvent: {}
+[33.182722] (-) TimerEvent: {}
+[33.282980] (-) TimerEvent: {}
+[33.383231] (-) TimerEvent: {}
+[33.483485] (-) TimerEvent: {}
+[33.520752] (ros2_h265_stereonet) StdoutLine: {'line': b'[100%] Built target stereo_h265_node\n'}
+[33.531625] (ros2_h265_stereonet) CommandEnded: {'returncode': 0}
+[33.532822] (ros2_h265_stereonet) JobProgress: {'identifier': 'ros2_h265_stereonet', 'progress': 'install'}
+[33.542444] (ros2_h265_stereonet) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet'], 'cwd': '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('VSCODE_CWD', '/home/sunrise'), ('VSCODE_ESM_ENTRYPOINT', 'vs/workbench/api/node/extensionHostProcess'), ('USER', 'sunrise'), ('SSH_CLIENT', '192.168.11.47 58104 22'), ('LC_TIME', 'en_US.UTF-8'), ('VSCODE_NLS_CONFIG', '{"userLocale":"en","osLocale":"en","resolvedLanguage":"en","defaultMessagesFile":"/home/sunrise/.cursor-server/bin/linux-arm64/68fbec5aed9da587d1c6a64172792f505bafa250/out/nls.messages.json","locale":"en","availableLanguages":{}}'), ('CI', '1'), ('VSCODE_HANDLES_UNCAUGHT_ERRORS', 'true'), ('XDG_SESSION_TYPE', 'tty'), ('HOBOT_ROOTFS_DIR', '/usr/hobot'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/home/sunrise/livox_ws/install/livox_sdk2/lib:/home/sunrise/livox_ws/install/livox_ros_driver2/lib:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/aarch64-linux-gnu:/opt/ros/humble/lib:/usr/lib/aarch64-linux-gnu:/lib/aarch64-linux-gnu:/app/lib:/app/pub/lib:/middleware/lib:/middleware/pub/lib:/usr/lib/gstreamer'), ('BROWSER', '/home/sunrise/.cursor-server/bin/linux-arm64/68fbec5aed9da587d1c6a64172792f505bafa250/bin/helpers/browser.sh'), ('MOTD_SHOWN', 'pam'), ('HOME', '/home/sunrise'), ('OLDPWD', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet'), ('VSCODE_IPC_HOOK_CLI', '/run/user/1000/vscode-ipc-02e81f16-0390-42b2-9608-2064cb93a741.sock'), ('ROS_PYTHON_VERSION', '3'), ('LC_MONETARY', 'en_US.UTF-8'), ('NO_COLOR', '1'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('VSCODE_L10N_BUNDLE_LOCATION', ''), ('COLCON_PREFIX_PATH', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install:/home/sunrise/livox_ws/install'), ('ROS_DISTRO', 'humble'), ('OVSX_REGISTRY_URL', 'https://open-vsx.org'), ('LOGNAME', 'sunrise'), ('FORCE_COLOR', '0'), ('VSCODE_HANDLES_SIGPIPE', 'true'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'dumb'), ('XDG_SESSION_ID', '21'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/sunrise/.local/bin:/home/sunrise/.cursor-server/bin/linux-arm64/68fbec5aed9da587d1c6a64172792f505bafa250/bin/remote-cli:/home/sunrise/.local/bin:/opt/ros/humble/bin:/home/sunrise/.cursor-server/bin/linux-arm64/68fbec5aed9da587d1c6a64172792f505bafa250/bin/remote-cli:/home/sunrise/.local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/hobot/bin:/app/bin:/middleware/bin:/var/busybox:/usr/local/sbin:/usr/local/bin:/usr/games:/usr/local/games:/snap/bin'), ('VSCODE_AGENT_FOLDER', '/home/sunrise/.cursor-server'), ('PAPERSIZE', 'a4'), ('LC_ADDRESS', 'en_US.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('CURSOR_AGENT', '1'), ('LANG', 'en_US.UTF-8'), ('LC_TELEPHONE', 'en_US.UTF-8'), ('LOGLEVEL', '5'), ('LS_COLORS', ''), ('AMENT_PREFIX_PATH', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet:/home/sunrise/livox_ws/install/livox_ros_driver2:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'en_US.UTF-8'), ('VSCODE_SERVER_SHUTDOWN_TIMEOUT', '300'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'en_US.UTF-8'), ('LC_IDENTIFICATION', 'en_US.UTF-8'), ('PWD', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet'), ('LC_ALL', 'en_US.UTF-8'), ('SSH_CONNECTION', '192.168.11.47 58104 192.168.11.165 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/sunrise/livox_ws/install/livox_ros_driver2/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'en_US.UTF-8'), ('TZ', 'CST-08:00'), ('LC_PAPER', 'en_US.UTF-8'), ('COLCON', '1'), ('_ZO_DOCTOR', '0'), ('LD_HWCAP_MASK', '0x00000000'), ('CMAKE_PREFIX_PATH', '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet:/home/sunrise/livox_ws/install/livox_ros_driver2:/opt/ros/humble')]), 'shell': False}
+[33.551741] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Install configuration: "Release"\n'}
+[33.552338] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Installing: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/lib/ros2_h265_stereonet/stereo_h265_node\n'}
+[33.554270] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Set runtime path of "/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/lib/ros2_h265_stereonet/stereo_h265_node" to ""\n'}
+[33.554708] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/launch\n'}
+[33.555048] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/launch/stereo_h265.launch.py\n'}
+[33.555418] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/config\n'}
+[33.555645] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/config/vita_calib.yaml\n'}
+[33.556027] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/config/stereo_h265_params.yaml\n'}
+[33.556240] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ament_index/resource_index/package_run_dependencies/ros2_h265_stereonet\n'}
+[33.556414] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Installing: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ament_index/resource_index/parent_prefix_path/ros2_h265_stereonet\n'}
+[33.556737] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/environment/ament_prefix_path.sh\n'}
+[33.556893] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Installing: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/environment/ament_prefix_path.dsv\n'}
+[33.557104] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/environment/path.sh\n'}
+[33.557353] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Installing: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/environment/path.dsv\n'}
+[33.557492] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/local_setup.bash\n'}
+[33.558004] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/local_setup.sh\n'}
+[33.558579] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/local_setup.zsh\n'}
+[33.558999] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Installing: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/local_setup.dsv\n'}
+[33.559304] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Installing: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/package.dsv\n'}
+[33.559765] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ament_index/resource_index/packages/ros2_h265_stereonet\n'}
+[33.560147] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/cmake/ros2_h265_stereonetConfig.cmake\n'}
+[33.560351] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/cmake/ros2_h265_stereonetConfig-version.cmake\n'}
+[33.560565] (ros2_h265_stereonet) StdoutLine: {'line': b'-- Up-to-date: /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/package.xml\n'}
+[33.560782] (ros2_h265_stereonet) CommandEnded: {'returncode': 0}
+[33.583687] (-) TimerEvent: {}
+[33.590454] (ros2_h265_stereonet) JobEnded: {'identifier': 'ros2_h265_stereonet', 'rc': 0}
+[33.591906] (-) EventReactorShutdown: {}

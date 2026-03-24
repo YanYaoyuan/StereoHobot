@@ -1,0 +1,10 @@
+[ 12%] [32mBuilding CXX object CMakeFiles/stereo_h265_node.dir/src/stereo_h265_node.cpp.o[0m
+In file included from [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/stereonet_process.h:33[m[K,
+                 from [01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/src/stereo_h265_node.cpp:29[m[K:
+[01m[K/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/pub_data.h:20:10:[m[K [01;31m[Kfatal error: [m[Kpcl/point_cloud.h: No such file or directory
+   20 | #include [01;31m[K"pcl/point_cloud.h"[m[K
+      |          [01;31m[K^~~~~~~~~~~~~~~~~~~[m[K
+compilation terminated.
+gmake[2]: *** [CMakeFiles/stereo_h265_node.dir/build.make:76: CMakeFiles/stereo_h265_node.dir/src/stereo_h265_node.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/stereo_h265_node.dir/all] Error 2
+gmake: *** [Makefile:146: all] Error 2

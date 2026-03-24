@@ -1,0 +1,15 @@
+In file included from /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/stereonet_process.h:23,
+                 from /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/src/stereo_h265_node.cpp:29:
+/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/../include/log_macros.h:20:61: note: ‘#pragma message: Detected rclcpp.hpp → ROS2 logging enabled’
+   20 | #pragma message("Detected rclcpp.hpp → ROS2 logging enabled")
+      |                                                             ^
+/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/src/stereo_h265_node.cpp: In member function ‘void StereoH265Node::load_parameters()’:
+/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/src/stereo_h265_node.cpp:224:18: error: redeclaration of ‘cv::Size img_size’
+  224 |         cv::Size img_size(left_cam.width, left_cam.height);
+      |                  ^~~~~~~~
+/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/src/stereo_h265_node.cpp:215:18: note: ‘cv::Size img_size’ previously declared here
+  215 |         cv::Size img_size(left_cam.width, left_cam.height);
+      |                  ^~~~~~~~
+gmake[2]: *** [CMakeFiles/stereo_h265_node.dir/build.make:76: CMakeFiles/stereo_h265_node.dir/src/stereo_h265_node.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/stereo_h265_node.dir/all] Error 2
+gmake: *** [Makefile:146: all] Error 2

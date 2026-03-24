@@ -1,0 +1,104 @@
+[0.167s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build', '--cmake-args', '-DPLATFORM_S100=ON']
+[0.167s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=6, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=['-DPLATFORM_S100=ON'], cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0xffff9b3bc2e0>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0xffff9b52dd50>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0xffff9b52dd50>>)
+[0.233s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.233s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.233s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.233s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.233s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.234s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.234s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet'
+[0.234s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.234s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.234s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.234s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.234s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.234s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.234s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.235s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.235s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.261s] DEBUG:colcon.colcon_core.package_identification:Package '.' with type 'ros.ament_cmake' and name 'ros2_h265_stereonet'
+[0.262s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.262s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.262s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.262s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.262s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.293s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.293s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.296s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 2 installed packages in /home/sunrise/livox_ws/install
+[0.298s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 270 installed packages in /opt/ros/humble
+[0.299s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[0.347s] Level 5:colcon.colcon_core.verb:set package 'ros2_h265_stereonet' build argument 'cmake_args' from command line to '['-DPLATFORM_S100=ON']'
+[0.347s] Level 5:colcon.colcon_core.verb:set package 'ros2_h265_stereonet' build argument 'cmake_target' from command line to 'None'
+[0.347s] Level 5:colcon.colcon_core.verb:set package 'ros2_h265_stereonet' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.347s] Level 5:colcon.colcon_core.verb:set package 'ros2_h265_stereonet' build argument 'cmake_clean_cache' from command line to 'False'
+[0.347s] Level 5:colcon.colcon_core.verb:set package 'ros2_h265_stereonet' build argument 'cmake_clean_first' from command line to 'False'
+[0.348s] Level 5:colcon.colcon_core.verb:set package 'ros2_h265_stereonet' build argument 'cmake_force_configure' from command line to 'False'
+[0.348s] Level 5:colcon.colcon_core.verb:set package 'ros2_h265_stereonet' build argument 'ament_cmake_args' from command line to 'None'
+[0.348s] Level 5:colcon.colcon_core.verb:set package 'ros2_h265_stereonet' build argument 'catkin_cmake_args' from command line to 'None'
+[0.348s] Level 5:colcon.colcon_core.verb:set package 'ros2_h265_stereonet' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.348s] DEBUG:colcon.colcon_core.verb:Building package 'ros2_h265_stereonet' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': ['-DPLATFORM_S100=ON'], 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet', 'merge_install': False, 'path': '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet', 'symlink_install': False, 'test_result_base': None}
+[0.348s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.350s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.350s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet' with build type 'ament_cmake'
+[0.350s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet'
+[0.353s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.354s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.354s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.367s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet -- -j6 -l6
+[34.095s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet -- -j6 -l6
+[34.106s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet
+[34.120s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(ros2_h265_stereonet)
+[34.122s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/build/ros2_h265_stereonet
+[34.126s] Level 1:colcon.colcon_core.environment:checking '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet' for CMake module files
+[34.127s] Level 1:colcon.colcon_core.environment:checking '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet' for CMake config files
+[34.127s] Level 1:colcon.colcon_core.shell:create_environment_hook('ros2_h265_stereonet', 'cmake_prefix_path')
+[34.128s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/hook/cmake_prefix_path.ps1'
+[34.129s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/hook/cmake_prefix_path.dsv'
+[34.130s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/hook/cmake_prefix_path.sh'
+[34.131s] Level 1:colcon.colcon_core.environment:checking '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/lib'
+[34.132s] Level 1:colcon.colcon_core.environment:checking '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/bin'
+[34.132s] Level 1:colcon.colcon_core.environment:checking '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/lib/pkgconfig/ros2_h265_stereonet.pc'
+[34.132s] Level 1:colcon.colcon_core.environment:checking '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/lib/python3.10/site-packages'
+[34.133s] Level 1:colcon.colcon_core.environment:checking '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/bin'
+[34.133s] INFO:colcon.colcon_core.shell:Creating package script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/package.ps1'
+[34.135s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/package.dsv'
+[34.136s] INFO:colcon.colcon_core.shell:Creating package script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/package.sh'
+[34.137s] INFO:colcon.colcon_core.shell:Creating package script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/package.bash'
+[34.139s] INFO:colcon.colcon_core.shell:Creating package script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/package.zsh'
+[34.140s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/colcon-core/packages/ros2_h265_stereonet)
+[34.141s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(ros2_h265_stereonet)
+[34.141s] Level 1:colcon.colcon_core.environment:checking '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet' for CMake module files
+[34.142s] Level 1:colcon.colcon_core.environment:checking '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet' for CMake config files
+[34.143s] Level 1:colcon.colcon_core.shell:create_environment_hook('ros2_h265_stereonet', 'cmake_prefix_path')
+[34.143s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/hook/cmake_prefix_path.ps1'
+[34.144s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/hook/cmake_prefix_path.dsv'
+[34.145s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/hook/cmake_prefix_path.sh'
+[34.146s] Level 1:colcon.colcon_core.environment:checking '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/lib'
+[34.146s] Level 1:colcon.colcon_core.environment:checking '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/bin'
+[34.146s] Level 1:colcon.colcon_core.environment:checking '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/lib/pkgconfig/ros2_h265_stereonet.pc'
+[34.146s] Level 1:colcon.colcon_core.environment:checking '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/lib/python3.10/site-packages'
+[34.147s] Level 1:colcon.colcon_core.environment:checking '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/bin'
+[34.148s] INFO:colcon.colcon_core.shell:Creating package script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/package.ps1'
+[34.149s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/package.dsv'
+[34.150s] INFO:colcon.colcon_core.shell:Creating package script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/package.sh'
+[34.151s] INFO:colcon.colcon_core.shell:Creating package script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/package.bash'
+[34.153s] INFO:colcon.colcon_core.shell:Creating package script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/ros2_h265_stereonet/package.zsh'
+[34.154s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/ros2_h265_stereonet/share/colcon-core/packages/ros2_h265_stereonet)
+[34.154s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[34.155s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[34.155s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[34.155s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[34.164s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[34.164s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[34.164s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[34.181s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[34.182s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/local_setup.ps1'
+[34.183s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/_local_setup_util_ps1.py'
+[34.186s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/setup.ps1'
+[34.188s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/local_setup.sh'
+[34.189s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/_local_setup_util_sh.py'
+[34.190s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/setup.sh'
+[34.192s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/local_setup.bash'
+[34.193s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/setup.bash'
+[34.194s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/local_setup.zsh'
+[34.195s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/sunrise/robot/hobot_stereonet/ros2_h265_stereonet/install/setup.zsh'
