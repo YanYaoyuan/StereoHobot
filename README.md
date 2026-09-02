@@ -78,6 +78,45 @@ scripts/run_infer.sh \
   0.10
 ```
 
+## ROS2 H.265 双目 S100 部署包
+
+`ros2_h265_stereonet` 可直接订阅机器狗左右相机的
+`foxglove_msgs/msg/CompressedVideo` H.265 话题，完成解码、同步和 S100 BPU
+推理，并发布深度图、彩色深度图、视差图及点云。
+
+本地构建和 GitHub Actions 都使用 D-Robotics 官方 S100/TROS Humble
+交叉编译镜像，不使用宿主机编译器：
+
+```bash
+bash ros2_h265_stereonet/run_build_S100.sh
+```
+
+构建产物为 `dist/StereoH265_ROS2_S100.tar.gz`。GitHub 云端对应工作流是
+`.github/workflows/build-ros2-s100.yml`，成功后从 Actions 的
+`StereoH265_ROS2_S100` Artifact 下载同名压缩包，不需要配置私有镜像仓库密码。
+
+复制并在 S100 板端运行：
+
+```bash
+scp dist/StereoH265_ROS2_S100.tar.gz root@<board-ip>:/userdata/
+ssh root@<board-ip>
+cd /userdata
+tar -xzf StereoH265_ROS2_S100.tar.gz
+cd StereoH265_ROS2_S100
+./check_environment.sh
+./run_stereo_h265.sh
+```
+
+机器狗话题名称不同时可直接覆盖：
+
+```bash
+LEFT_TOPIC=/dog/camera/left/h265 \
+RIGHT_TOPIC=/dog/camera/right/h265 \
+./run_stereo_h265.sh
+```
+
+完整说明见 [`ros2_h265_stereonet/README.md`](ros2_h265_stereonet/README.md)。
+
 ## Project Structure
 
 ```

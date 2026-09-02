@@ -17,6 +17,18 @@ else()
   add_definitions(-DPLATFORM_X5)
 endif()
 
+# Cache variable allows the package to be staged separately in a cross-build
+# workspace while reusing the parent project's inference sources and ARM64
+# OpenCV distribution.
+set(STEREONET_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/.." CACHE PATH
+    "Path to the parent StereoHobot source tree")
+if((PLATFORM_S100 OR PLATFORM_S600) AND
+   EXISTS "${STEREONET_ROOT}/standalone/3rdparty/lib_opencv4.5.4/lib/cmake/opencv4/OpenCVConfig.cmake")
+  set(OpenCV_DIR
+      "${STEREONET_ROOT}/standalone/3rdparty/lib_opencv4.5.4/lib/cmake/opencv4"
+      CACHE PATH "ARM64 OpenCV package" FORCE)
+endif()
+
 # =================================== find packages ===================================
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -38,8 +50,6 @@ pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
 )
 
 # =================================== stereonet parent paths ===========================
-set(STEREONET_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/..)
-
 set(concurrentqueue_DIR ${STEREONET_ROOT}/3rdparty/concurrentqueue)
 set(magic_enum_DIR ${STEREONET_ROOT}/3rdparty/magic_enum/include)
 set(bs_thread_pool_DIR ${STEREONET_ROOT}/3rdparty/thread-pool/include)
@@ -87,6 +97,8 @@ endif()
 include_directories(
   include
   ${STEREONET_ROOT}/include
+  ${SYS_ROOT}/usr/include
+  ${SYS_ROOT}/usr/hobot/include
   ${PCL_INCLUDE_DIRS}
   ${concurrentqueue_DIR}
   ${magic_enum_DIR}
@@ -138,5 +150,11 @@ target_link_libraries(stereo_h265_node
 install(TARGETS stereo_h265_node DESTINATION lib/${PROJECT_NAME})
 install(DIRECTORY launch/ DESTINATION share/${PROJECT_NAME}/launch)
 install(DIRECTORY config/ DESTINATION share/${PROJECT_NAME}/config)
+
+set(S100_MODEL
+  "${STEREONET_ROOT}/config/dstereo_s100_320_640_352_v2.4.hbm")
+if(PLATFORM_S100 AND EXISTS "${S100_MODEL}")
+  install(FILES "${S100_MODEL}" DESTINATION share/${PROJECT_NAME}/model)
+endif()
 
 ament_package()

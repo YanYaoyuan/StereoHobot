@@ -23,7 +23,7 @@ ROS2 节点：订阅 H.265 编码的左右相机视频流（`foxglove_msgs/Compr
 | 依赖 | 说明 |
 |------|------|
 | ROS2 (humble / jazzy) | `rclcpp`, `sensor_msgs`, `std_msgs` |
-| `foxglove_msgs` | 提供 `CompressedVideo` 消息类型 |
+| `foxglove_msgs` | 提供 `CompressedVideo` 消息类型；S100 部署包会从 vendored 源码一同构建 |
 | FFmpeg (libavcodec, libavutil, libswscale) | H.265 解码 |
 | OpenCV 4.x | 图像处理 |
 | PCL | 点云（`stereonet_process.h` 编译需要） |
@@ -69,12 +69,56 @@ colcon build --packages-select ros2_h265_stereonet \
   --cmake-args -DPLATFORM_S100=ON
 ```
 
-### 交叉编译
+### S100 本地 Docker 交叉编译
 
 ```bash
-cd ros2_h265_stereonet
-bash run_build_S100.sh
+cd /home/user/vbot/StereoHobot
+bash ros2_h265_stereonet/run_build_S100.sh
 ```
+
+脚本使用 D-Robotics 官方 `pc_tros_ubuntu22.04:v1.0.0` 镜像、固定版本的
+`robot_dev_config` 和 S100 sysroot，在 Docker 容器内执行 ROS2 Humble
+交叉编译。宿主机上的 `/usr/bin/aarch64-linux-gnu-*` 不参与构建。
+
+首次运行会下载并加载官方镜像；本机会自动复用
+`/data/omni-s100-local/workspace/cache` 中已经验证过的 S100 sysroot（如果存在）。
+可用 `S100_WORK_ROOT`、`S100_CACHE_ROOT`、`S100_IMAGE_ARCHIVE` 覆盖默认位置。
+
+构建完成后得到：
+
+```text
+dist/StereoH265_ROS2_S100.tar.gz
+└── StereoH265_ROS2_S100/
+    ├── bin/       # ARM64 stereo_h265_node
+    ├── lib/       # UCP、OpenCV、foxglove_msgs 运行库
+    ├── config/    # ROS 参数及相机标定
+    ├── launch/    # ROS2 launch
+    ├── model/     # S100 HBM 模型
+    ├── install/   # colcon overlay
+    └── result/    # 可选推理结果
+```
+
+### GitHub 云端 CI
+
+`.github/workflows/build-ros2-s100.yml` 在 push、PR 或手动触发时执行相同的
+容器构建脚本，成功后上传 `StereoH265_ROS2_S100` Artifact。该流程使用公开的
+官方镜像归档，不依赖 `D_ROBOTICS_USERNAME` 或 `D_ROBOTICS_PASSWORD`。
+
+### 复制到 S100 板端
+
+```bash
+scp dist/StereoH265_ROS2_S100.tar.gz root@<board-ip>:/userdata/
+ssh root@<board-ip>
+cd /userdata
+tar -xzf StereoH265_ROS2_S100.tar.gz
+cd StereoH265_ROS2_S100
+
+./check_environment.sh
+./run_stereo_h265.sh
+```
+
+板端需使用与 RDK OS 匹配的 TROS Humble（通常为 `/opt/tros/humble`，也支持
+`/opt/ros/humble`）。无需在板端再次编译。
 
 ## 运行
 
@@ -86,7 +130,7 @@ source ~/ros2_ws/install/setup.bash
 
 ros2 run ros2_h265_stereonet stereo_h265_node \
   --ros-args \
-  -p model_path:=./model/DStereoV2.4_int16.bin \
+  -p model_path:=./model/dstereo_s100_320_640_352_v2.4.hbm \
   -p left_topic:=/image_left_raw/h265 \
   -p right_topic:=/image_right_raw/h265 \
   -p fx:=380.0 -p fy:=380.0 -p cx:=320.0 -p cy:=240.0 \
@@ -120,7 +164,7 @@ ros2 run ros2_h265_stereonet stereo_h265_node \
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `model_path` | string | `./model/DStereoV2.4_int16.bin` | BPU 模型文件路径 |
+| `model_path` | string | launch 自动定位已安装的 S100 HBM | BPU 模型文件路径 |
 | `post_version` | string | `auto` | 后处理版本 |
 | `left_topic` | string | `/image_left_raw/h265` | 左相机 H.265 话题 |
 | `right_topic` | string | `/image_right_raw/h265` | 右相机 H.265 话题 |
@@ -186,10 +230,8 @@ ros2_h265_stereonet/
 │   └── stereo_h265.launch.py   # Launch 文件
 ├── config/
 │   └── stereo_h265_params.yaml # 默认参数配置
-└── run_build_S100.sh           # S100 交叉编译脚本
+└── run_build_S100.sh           # 官方 TROS Docker 本地构建入口
 ```
-colcon build --packages-select ros2_h265_stereonet \
-  --cmake-args -DPLATFORM_S100=ON
 
   新增 Topic 发布功能
 发布的 Topics

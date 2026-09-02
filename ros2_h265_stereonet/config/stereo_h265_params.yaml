@@ -1,7 +1,8 @@
 stereo_h265_node:
   ros__parameters:
     # ======================== Model ========================
-    model_path: "/home/sunrise/robot/hobot_stereonet/config/dstereo_s100_320_640_352_v2.4.hbm"
+    # The packaged launch file overrides this with its installed model path.
+    model_path: ""
     post_version: "auto"
     uncertainty_th: -0.10
 
@@ -24,7 +25,8 @@ stereo_h265_node:
     #
     # Option 1 (recommended): D-Robotics stereo calibration YAML
     #   Auto-extracts left-camera intrinsics + computes baseline from extrinsics
-    calib_yaml_file: "config/vita_calib.yaml"
+    # The packaged launch file overrides this with its installed calibration.
+    calib_yaml_file: ""
     
     lidar_frame_id: "lidar"
     # 仅读取左目 K 与外参推 baseline；不做 OpenCV 去畸变 / remap（输入已视为已校正图像）

@@ -1,0 +1,86 @@
+name: Build ROS2 H265 StereoNet for S100
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ros2-s100-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 150
+    env:
+      S100_IMAGE: pc_tros_ubuntu22.04:v1.0.0
+      S100_IMAGE_URL: http://archive.d-robotics.cc/TogetheROS/cross_compile_docker/pc_tros_ubuntu22.04_v1.0.0.tar.gz
+      S100_IMAGE_SHA256: ec065c268782373311421f0bb7f2212bfec6584a7070a9737468055a6bce2c88
+      ROBOT_DEV_CONFIG_REF: f44b1ad2575b34c189fd470de1db9c5ad48b6886
+      S100_SYSROOT_REF: de9fa286f71a72d24c349477cd59f41cc2cc3d8f
+
+    steps:
+      - name: Checkout StereoHobot
+        uses: actions/checkout@v4
+
+      - name: Free runner disk space
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup || true
+          docker system prune --all --force || true
+          df -h
+
+      - name: Load official TROS S100 cross-compilation image
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          archive="${RUNNER_TEMP}/pc_tros_ubuntu22.04_v1.0.0.tar.gz"
+          curl --fail --location --retry 5 --retry-all-errors --continue-at - \
+            --output "${archive}" "${S100_IMAGE_URL}"
+          echo "${S100_IMAGE_SHA256}  ${archive}" | sha256sum --check
+          docker load --input "${archive}"
+          rm -f "${archive}"
+          docker image inspect "${S100_IMAGE}" --format='ID={{.Id}} ARCH={{.Architecture}} OS={{.Os}}'
+
+      - name: Cross-build and package ROS2 node
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          export S100_SOURCE_ROOT="${GITHUB_WORKSPACE}"
+          export S100_WORK_ROOT="${RUNNER_TEMP}/stereohobot-s100"
+          export S100_CACHE_ROOT="${RUNNER_TEMP}/stereohobot-cache"
+          export S100_CLEAN=1
+          ci/build_ros2_s100_cross.sh
+
+      - name: Verify deployable artifact
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -s dist/StereoH265_ROS2_S100.tar.gz
+          archive_listing="$(tar -tzf dist/StereoH265_ROS2_S100.tar.gz)"
+          grep -Fq 'StereoH265_ROS2_S100/bin/stereo_h265_node' <<<"${archive_listing}"
+          grep -Fq 'StereoH265_ROS2_S100/config/stereo_h265_params.yaml' <<<"${archive_listing}"
+          grep -Fq 'StereoH265_ROS2_S100/model/dstereo_s100_320_640_352_v2.4.hbm' <<<"${archive_listing}"
+          ls -lh dist/StereoH265_ROS2_S100.tar.gz
+
+      - name: Upload ROS2 S100 package
+        uses: actions/upload-artifact@v4
+        with:
+          name: StereoH265_ROS2_S100
+          path: dist/StereoH265_ROS2_S100.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Cleanup
+        if: always()
+        shell: bash
+        run: |
+          sudo rm -rf "${RUNNER_TEMP}/stereohobot-s100" "${RUNNER_TEMP}/stereohobot-cache"
+          docker system prune --all --force || true

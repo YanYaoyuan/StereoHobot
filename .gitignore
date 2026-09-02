@@ -6,3 +6,5 @@ standalone/build
 /dist/
 src/*.dep
 src/*.obj
+__pycache__/
+*.py[cod]
