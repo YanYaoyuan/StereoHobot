@@ -46,15 +46,16 @@ installed `ai_toolchain_ubuntu_22_s100_s600_*:v3.7.0` image.
 
 ### GitHub cloud build
 
-Before the first automatic build, add these GitHub repository secrets under
+Automatic builds download the public OSS toolchain image archive and require
+no registry credentials. To manually select the private `registry` source, add
+these optional GitHub repository secrets under
 **Settings → Secrets and variables → Actions**:
 
 - `D_ROBOTICS_USERNAME`: the registry user (for example, `ccr$deliver-ronly`)
 - `D_ROBOTICS_PASSWORD`: the registry access token/password
 
-Do not commit registry credentials. The manual workflow also offers an `oss`
-image source, which downloads the public toolchain tar and needs no registry
-secret.
+Do not commit registry credentials. Manual builds default to the public `oss`
+source as well.
 
 After a successful run, download `StereoInfer_S100.tar.gz` directly from the
 workflow run. Tags such as `v1.0.0` additionally publish the package under

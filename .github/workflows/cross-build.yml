@@ -12,11 +12,11 @@ on:
       image_source:
         description: Toolchain image source
         required: true
-        default: registry
+        default: oss
         type: choice
         options:
-          - registry
           - oss
+          - registry
 
 concurrency:
   group: cross-build-${{ github.ref }}
@@ -40,7 +40,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Pull toolchain image from registry
-        if: inputs.image_source != 'oss'
+        if: inputs.image_source == 'registry'
         env:
           REGISTRY_USERNAME: ${{ secrets.D_ROBOTICS_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.D_ROBOTICS_PASSWORD }}
@@ -56,13 +56,14 @@ jobs:
           docker logout registry.d-robotics.cc
 
       - name: Load toolchain image from OSS
-        if: inputs.image_source == 'oss'
+        if: inputs.image_source != 'registry'
         run: |
           set -Eeuo pipefail
           archive="${RUNNER_TEMP}/ai_toolchain_v3.7.0.tar"
           curl --fail --location --retry 5 --retry-all-errors \
             --output "${archive}" "${TOOLCHAIN_TAR_URL}"
           load_output="$(docker load --input "${archive}")"
+          rm -f "${archive}"
           printf '%s\n' "${load_output}"
           if ! docker image inspect "${TOOLCHAIN_IMAGE}" >/dev/null 2>&1; then
             loaded_ref="$(printf '%s\n' "${load_output}" | sed -n 's/^Loaded image: //p' | tail -n 1)"
