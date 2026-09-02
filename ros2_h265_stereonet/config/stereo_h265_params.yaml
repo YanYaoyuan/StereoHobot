@@ -25,16 +25,9 @@ stereo_h265_node:
     # Option 1 (recommended): D-Robotics stereo calibration YAML
     #   Auto-extracts left-camera intrinsics + computes baseline from extrinsics
     calib_yaml_file: "config/vita_calib.yaml"
-    # false: scaled K undistort (same as tutorial: scale by width, cy crop fix, D unchanged)
-    # true: OpenCV stereoRectify (epipolar align; may fail on some calibs)
-    undistort_use_stereo_rectify: false
-    # initUndistortRectifyMap：仅用 D 的前 N 项。8 参有理模型 + 极大 k1 在部分 OpenCV 上会 SIGSEGV，默认 5。
-    # 设为 0 表示使用 YAML 中完整 D（若再崩溃需换 OpenCV 或鱼眼模型）
-    undistort_dist_coeff_count: 5
-    # 为 true 时始终用零畸变建图（不调 OpenCV 畸变逆映射，仅缩放 K）
-    undistort_force_no_distortion: false
-    # 任一眼截断后 |k1| 超过该值则左右眼均改用零 D（默认 2.0；左目 k1≈8 会触发）。<=0 关闭。
-    undistort_extreme_k1_threshold: 2.0
+    
+    lidar_frame_id: "lidar"
+    # 仅读取左目 K 与外参推 baseline；不做 OpenCV 去畸变 / remap（输入已视为已校正图像）
     #
     # Option 2: simple "fx fy cx cy baseline" text file
     intrinsic_file: ""
@@ -48,25 +41,34 @@ stereo_h265_node:
 
     # ======================== Publish (Topic) ================
     publish_depth: true
+    # 伪彩色深度图（BGR8），默认 Turbo + gamma，右侧色条；与 mono16 原始深度并存
+    publish_depth_color: true
+    depth_color_topic: "~/stereonet_depth_color"
+    # 色彩映射上限（米），大于此深度钳到最亮色；无效像素仍为黑
+    depth_color_max_m: 8.0
+    # <1 时拉伸近距细节（如 0.55≈sqrt）；1.0 为线性
+    depth_color_gamma: 0.55
+    # turbo | viridis | inferno | magma | plasma | jet | hot | bone | rainbow（turbo/viridis 等需 OpenCV>=4.5）
+    depth_color_colormap: plasma
     publish_pointcloud: true
-    publish_visual: false
-    publish_disp: false
+    publish_visual: true
+    publish_disp: true
     depth_topic: "~/stereonet_depth"
     pointcloud_topic: "~/stereonet_pointcloud2"
     visual_topic: "~/stereonet_visual"
     disp_topic: "~/stereonet_disp"
     frame_id: "camera_link"
     pointcloud_downsample_step: 2    # downsample step for point cloud
-    pointcloud_depth_max: 5.0        # max depth for point cloud (m)
+    pointcloud_depth_max: 50.0        # max depth for point cloud (m)
 
     # ======================== Save (File) ==================
     result_dir: "./result"
-    save_results: true
+    save_results: false
     save_freq: 1           # save every N-th frame
     max_frames: -1         # -1 = unlimited
-    save_visual: true
-    save_pcd: true
-    save_disp: true
-    save_depth: true
+    save_visual: false
+    save_pcd: false
+    save_disp: false
+    save_depth: false
     save_uncert: false
     save_epipolar: false

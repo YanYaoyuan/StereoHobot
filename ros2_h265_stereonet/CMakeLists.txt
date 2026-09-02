@@ -22,6 +22,8 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
 find_package(foxglove_msgs REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(OpenCV REQUIRED)
@@ -107,6 +109,7 @@ add_executable(stereo_h265_node
   ${STEREONET_ROOT}/src/img_convert_utils.cpp
   ${STEREONET_ROOT}/src/file_utils.cpp
   ${STEREONET_ROOT}/src/feature_epipolar_align.cpp
+  ${STEREONET_ROOT}/src/stereo_rectify.cpp
 )
 
 target_compile_features(stereo_h265_node PUBLIC cxx_std_17)
@@ -115,6 +118,8 @@ ament_target_dependencies(stereo_h265_node
   rclcpp
   sensor_msgs
   std_msgs
+  geometry_msgs
+  tf2_ros
   foxglove_msgs
   ament_index_cpp
 )

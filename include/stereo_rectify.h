@@ -53,6 +53,19 @@ public:
    */
   void get_intrinsic(double &fx, double &fy, double &cx, double &cy, double &baseline) const;
 
+  /**
+   * @brief Reset the undistort map so it will be rebuilt on the next build_undistmap call.
+   * Call this when the input image resolution changes.
+   */
+  void reset() {
+    undistmap_built_ = false;
+    undistmap1ls_.clear();
+    undistmap2ls_.clear();
+    undistmap1rs_.clear();
+    undistmap2rs_.clear();
+    Qs_.clear();
+  }
+
 private:
   // logger
   rclcpp::Logger logger_;

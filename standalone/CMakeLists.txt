@@ -3,6 +3,10 @@ project(StereoInfer)
 
 set(CMAKE_CXX_STANDARD 17)
 
+# Keep packaged binaries relocatable and independent of build-machine paths.
+set(CMAKE_BUILD_RPATH "$ORIGIN/../lib")
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+
 # Release
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 

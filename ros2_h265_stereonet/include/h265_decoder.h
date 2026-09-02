@@ -57,8 +57,10 @@ public:
   H265DecodeStats get_stats() const { return stats_; }
 
   /**
-   * @brief Decode one H.265 access unit (Annex-B).
-   * @param data  Raw bytes; 若无起始码会尝试前补 00 00 00 01（与 demo 一致）
+   * @brief Decode one H.265 access unit.
+   * @param data  已是 Annex-B（00 00 01 / 00 00 00 01）则原样送入；否则先尝试解析为
+   *              「4 字节大端长度 + NAL」串联（HVCC 风格）并转成 Annex-B；再不行则整包前补
+   *              单颗起始码（单 NAL 假设）。
    * @param size  Byte count of @p data.
    * @param bgr_out  Decoded frame in BGR24 format.  Untouched on failure.
    * @return true if a frame was produced, false otherwise.

@@ -27,6 +27,9 @@
 #include "sensor_msgs/point_cloud2_iterator.hpp"
 #include "sensor_msgs/msg/camera_info.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
+#include "message_filters/subscriber.h"
+#include "message_filters/sync_policies/approximate_time.h"
+#include "message_filters/synchronizer.h"
 #include "tf2_ros/static_transform_broadcaster.h"
 #include "tf2/LinearMath/Quaternion.h"
 #include "pcl/point_cloud.h"
@@ -47,6 +50,10 @@
 #include "pub_data.h"
 #include "epipolar_align.h"
 #include "feature_epipolar_align.h"
+#ifdef HAVE_FOXGLOVE_MSGS
+#include "foxglove_msgs/msg/compressed_video.hpp"
+#include "h265_decoder.hpp"
+#endif
 
 namespace fs = std::filesystem;
 
@@ -98,10 +105,18 @@ private:
   void set_worker_threads();
 
   /**
-   * @brief Callback function for stereo image subscription
+   * @brief Callback function for stereo image subscription (combined left+right topic)
    * @param msg The received stereo image message
    */
   void stereo_image_callback(const sensor_msgs::msg::Image::SharedPtr msg);
+
+  /**
+   * @brief Synchronized callback for separate left/right image topics
+   * @param left_msg  Left camera image
+   * @param right_msg Right camera image
+   */
+  void stereo_sync_callback(const sensor_msgs::msg::Image::ConstSharedPtr &left_msg,
+                             const sensor_msgs::msg::Image::ConstSharedPtr &right_msg);
 
   /**
    * @brief Callback function for camera info subscription
@@ -114,6 +129,14 @@ private:
    * @param msg The received left camera info message
    */
   void left_camera_info_callback(const sensor_msgs::msg::CameraInfo::SharedPtr msg);
+
+  /**
+   * @brief Synchronized callback for separate left/right H265 CompressedVideo topics
+   */
+#ifdef HAVE_FOXGLOVE_MSGS
+  void h265_sync_callback(const foxglove_msgs::msg::CompressedVideo::ConstSharedPtr &left_msg,
+                          const foxglove_msgs::msg::CompressedVideo::ConstSharedPtr &right_msg);
+#endif
 
   /**
    * @brief Inference function to process stereo images and generate disparity maps
@@ -232,6 +255,30 @@ private:
   rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_sub_ = nullptr;
   std::string left_camera_info_topic_ = "/image_combine_raw/left/camera_info";
   rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr left_camera_info_sub_ = nullptr;
+
+  // separate left/right topics mode
+  bool use_separate_topics_ = false;
+  std::string left_image_topic_ = "/left/image_raw";
+  std::string right_image_topic_ = "/right/image_raw";
+  using SyncPolicy = message_filters::sync_policies::ApproximateTime<
+      sensor_msgs::msg::Image, sensor_msgs::msg::Image>;
+  message_filters::Subscriber<sensor_msgs::msg::Image> left_image_sub_;
+  message_filters::Subscriber<sensor_msgs::msg::Image> right_image_sub_;
+  std::shared_ptr<message_filters::Synchronizer<SyncPolicy>> stereo_sync_;
+  // H265 CompressedVideo topics mode
+#ifdef HAVE_FOXGLOVE_MSGS
+  bool use_h265_topics_ = false;
+  std::string left_h265_topic_ = "/image_left_raw/h265";
+  std::string right_h265_topic_ = "/image_right_raw/h265";
+  using H265SyncPolicy = message_filters::sync_policies::ApproximateTime<
+      foxglove_msgs::msg::CompressedVideo, foxglove_msgs::msg::CompressedVideo>;
+  message_filters::Subscriber<foxglove_msgs::msg::CompressedVideo> left_h265_sub_;
+  message_filters::Subscriber<foxglove_msgs::msg::CompressedVideo> right_h265_sub_;
+  std::shared_ptr<message_filters::Synchronizer<H265SyncPolicy>> h265_stereo_sync_;
+  std::unique_ptr<H265Decoder> left_h265_decoder_;
+  std::unique_ptr<H265Decoder> right_h265_decoder_;
+#endif
+
   sensor_msgs::msg::CameraInfo::SharedPtr origin_camera_info_ = nullptr;
   sensor_msgs::msg::CameraInfo::SharedPtr origin_left_camera_info_ = nullptr;
 
@@ -317,6 +364,8 @@ private:
   std::atomic<bool> camera_info_updated_{false};
   std::atomic<bool> calc_fov_flag_{false};
   std::shared_ptr<StereoRectify> stereo_rectifier_ = nullptr;
+  int last_input_w_ = -1;
+  int last_input_h_ = -1;
 
   // render
   std::string render_type_ = "distance";

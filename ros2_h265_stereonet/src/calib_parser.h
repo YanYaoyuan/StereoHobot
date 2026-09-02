@@ -14,6 +14,11 @@ struct CameraCalib {
     cv::Vec3d T_BC; // 3x1
 };
 
+struct LidarCalib {
+    cv::Mat R_BL;   // 3x3  body→lidar rotation
+    cv::Vec3d t_BL; // 3x1  body→lidar translation
+};
+
 inline cv::Mat quatToMat(double qx, double qy, double qz, double qw) {
     cv::Mat R = cv::Mat::eye(3, 3, CV_64F);
     double sqw = qw*qw;
@@ -155,4 +160,72 @@ inline bool parseFullStereoCalibYaml(const std::string &file_path, CameraCalib &
     }
 
     return !left.K.empty() && !right.K.empty();
+}
+
+// Parse Extr_B_L from the "lidar" label section of a vita_calib.yaml
+inline bool parseLidarCalibYaml(const std::string &file_path, LidarCalib &lidar) {
+    std::ifstream infile(file_path);
+    if (!infile.is_open()) return false;
+
+    auto parseArray = [](const std::string &s) -> std::vector<double> {
+        auto p0 = s.find('[');
+        auto p1 = s.find(']');
+        if (p0 == std::string::npos || p1 == std::string::npos) return {};
+        std::string inner = s.substr(p0 + 1, p1 - p0 - 1);
+        for (char &c : inner) { if (c == ',') c = ' '; }
+        std::istringstream ss(inner);
+        std::vector<double> vals;
+        double v;
+        while (ss >> v) vals.push_back(v);
+        return vals;
+    };
+
+    auto trim = [](const std::string &s) -> std::string {
+        size_t a = s.find_first_not_of(" \t\r\n");
+        if (a == std::string::npos) return "";
+        size_t b = s.find_last_not_of(" \t\r\n");
+        return s.substr(a, b - a + 1);
+    };
+
+    bool in_lidar = false;
+    bool in_extr  = false;
+    std::string line;
+    while (std::getline(infile, line)) {
+        std::string t = trim(line);
+        if (t.empty() || t[0] == '#') continue;
+
+        if (t.find("label:") != std::string::npos) {
+            std::string lbl = trim(t.substr(t.find(':') + 1));
+            in_lidar = (lbl == "lidar");
+            in_extr  = false;
+            continue;
+        }
+        if (!in_lidar) continue;
+
+        if (t.find("Extr_B_L:") != std::string::npos) { in_extr = true; continue; }
+        if (!in_extr) continue;
+
+        if (t.find("orientation:") != std::string::npos) {
+            auto vals = parseArray(t);
+            if (vals.size() == 4) {
+                // vita_calib format: [w, x, y, z]
+                lidar.R_BL = quatToMat(vals[1], vals[2], vals[3], vals[0]);
+                std::cout << "[CalibParser] lidar R_BL parsed from quat." << std::endl;
+            }
+            continue;
+        }
+        if (t.find("translation:") != std::string::npos) {
+            auto vals = parseArray(t);
+            if (vals.size() == 3) {
+                lidar.t_BL = cv::Vec3d(vals[0], vals[1], vals[2]);
+                std::cout << "[CalibParser] lidar t_BL: ["
+                          << vals[0] << ", " << vals[1] << ", " << vals[2] << "]" << std::endl;
+            }
+            // once we have both orientation+translation we can stop
+            if (!lidar.R_BL.empty()) break;
+            continue;
+        }
+    }
+
+    return !lidar.R_BL.empty();
 }

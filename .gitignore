@@ -3,5 +3,6 @@ cmake-build-release
 tools/build
 platform_private
 standalone/build
+/dist/
 src/*.dep
 src/*.obj

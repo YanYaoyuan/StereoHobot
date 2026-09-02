@@ -1,0 +1,100 @@
+name: Cross-build board package
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      image_source:
+        description: Toolchain image source
+        required: true
+        default: registry
+        type: choice
+        options:
+          - registry
+          - oss
+
+concurrency:
+  group: cross-build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  TOOLCHAIN_IMAGE: registry.d-robotics.cc/deliver/ai_toolchain_ubuntu_22_s100_s600_gpu:v3.7.0
+  TOOLCHAIN_TAR_URL: https://d-robotics-aitoolchain.oss-cn-beijing.aliyuncs.com/oe/3.7.0/ai_toolchain_ubuntu_22_s100_s600_gpu_v3.7.0.tar
+
+jobs:
+  build-s100:
+    name: Build S100 deployable package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Pull toolchain image from registry
+        if: inputs.image_source != 'oss'
+        env:
+          REGISTRY_USERNAME: ${{ secrets.D_ROBOTICS_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.D_ROBOTICS_PASSWORD }}
+        run: |
+          set -Eeuo pipefail
+          if [[ -z "${REGISTRY_USERNAME}" || -z "${REGISTRY_PASSWORD}" ]]; then
+            echo "Missing D_ROBOTICS_USERNAME or D_ROBOTICS_PASSWORD repository secret." >&2
+            exit 1
+          fi
+          printf '%s' "${REGISTRY_PASSWORD}" | docker login registry.d-robotics.cc \
+            --username "${REGISTRY_USERNAME}" --password-stdin
+          docker pull "${TOOLCHAIN_IMAGE}"
+          docker logout registry.d-robotics.cc
+
+      - name: Load toolchain image from OSS
+        if: inputs.image_source == 'oss'
+        run: |
+          set -Eeuo pipefail
+          archive="${RUNNER_TEMP}/ai_toolchain_v3.7.0.tar"
+          curl --fail --location --retry 5 --retry-all-errors \
+            --output "${archive}" "${TOOLCHAIN_TAR_URL}"
+          load_output="$(docker load --input "${archive}")"
+          printf '%s\n' "${load_output}"
+          if ! docker image inspect "${TOOLCHAIN_IMAGE}" >/dev/null 2>&1; then
+            loaded_ref="$(printf '%s\n' "${load_output}" | sed -n 's/^Loaded image: //p' | tail -n 1)"
+            loaded_ref="${loaded_ref:-$(printf '%s\n' "${load_output}" | sed -n 's/^Loaded image ID: //p' | tail -n 1)}"
+            test -n "${loaded_ref}"
+            docker tag "${loaded_ref}" "${TOOLCHAIN_IMAGE}"
+          fi
+
+      - name: Cross-compile and package
+        run: bash ci/build_with_docker.sh s100
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/StereoInfer_S100.tar.gz
+          archive: false
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish tagged release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" \
+              dist/StereoInfer_S100.tar.gz \
+              --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" \
+              dist/StereoInfer_S100.tar.gz \
+              --generate-notes \
+              --title "${GITHUB_REF_NAME}"
+          fi

@@ -49,9 +49,17 @@ def generate_launch_description():
 
         {'name':'stereonet_model_file_path', 'default_value': stereonet_model_file_path, 'description': 'stereonet_model_file_path'},
 
-        {'name':'stereo_image_topic', 'default_value':'/image_combine_raw', 'description': 'stereo_image_topic'},
+        {'name':'stereo_image_topic', 'default_value':'/image_combine_raw', 'description': 'stereo_image_topic (combined left+right, used when use_separate_topics=False)'},
         {'name':'camera_info_topic', 'default_value':'/image_combine_raw/right/camera_info', 'description': 'camera_info_topic'},
         {'name':'left_camera_info_topic', 'default_value':'/image_combine_raw/left/camera_info', 'description': 'left_camera_info_topic'},
+
+        {'name':'use_separate_topics', 'default_value':'False', 'description': 'subscribe separate left/right image topics instead of combined topic'},
+        {'name':'left_image_topic', 'default_value':'/left/image_raw', 'description': 'left camera image topic (used when use_separate_topics=True)'},
+        {'name':'right_image_topic', 'default_value':'/right/image_raw', 'description': 'right camera image topic (used when use_separate_topics=True)'},
+
+        {'name':'use_h265_topics', 'default_value':'False', 'description': 'subscribe foxglove_msgs/CompressedVideo H265 topics'},
+        {'name':'left_h265_topic', 'default_value':'/image_left_raw/h265', 'description': 'left H265 CompressedVideo topic (used when use_h265_topics=True)'},
+        {'name':'right_h265_topic', 'default_value':'/image_right_raw/h265', 'description': 'right H265 CompressedVideo topic (used when use_h265_topics=True)'},
 
         {'name':'depth_image_topic', 'default_value':'/StereoNetNode/stereonet_depth', 'description': 'depth_topic'},
         {'name':'depth_camera_info_topic', 'default_value':'/StereoNetNode/stereonet_depth/camera_info', 'description': 'depth_camera_info_topic'},

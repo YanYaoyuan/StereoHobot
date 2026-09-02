@@ -16,6 +16,67 @@
 - 中文文档：https://developer.d-robotics.cc/rdk_doc/Robot_development/boxs/spatial/hobot_stereonet
 - English Document: https://developer.d-robotics.cc/rdk_doc/en/Robot_development/boxs/spatial/hobot_stereonet
 
+## GitHub CI/CD cross-build
+
+The workflow in `.github/workflows/cross-build.yml` builds the standalone S100
+package with the D-Robotics v3.7.0 toolchain image. A push to `main`/`master`, a
+`v*` tag, or a manual workflow dispatch starts the build.
+
+Both build modes invoke the compiler inside the same toolchain image.
+
+### Local Docker build
+
+First pull the image from the registry, or load the separately downloaded
+`ai_toolchain_ubuntu_22_s100_s600_gpu_v3.7.0.tar` Docker archive. Then run:
+
+```bash
+bash ci/build_with_docker.sh s100
+```
+
+The script derives a small build image from the vendor image by adding CMake,
+Make and `file`; the ARM compiler and runtime environment still come from the
+D-Robotics image. The deployable result is written to
+`dist/StereoInfer_S100.tar.gz`.
+`ci/build_standalone.sh` is the container-internal build step and normally
+should not be invoked directly on the host.
+
+`oe-package-3.7.0-s100-s600.tgz` is an OpenExplorer resource bundle, not a
+Docker image archive. Its bundled `run_docker.sh` also starts the separately
+installed `ai_toolchain_ubuntu_22_s100_s600_*:v3.7.0` image.
+
+### GitHub cloud build
+
+Before the first automatic build, add these GitHub repository secrets under
+**Settings → Secrets and variables → Actions**:
+
+- `D_ROBOTICS_USERNAME`: the registry user (for example, `ccr$deliver-ronly`)
+- `D_ROBOTICS_PASSWORD`: the registry access token/password
+
+Do not commit registry credentials. The manual workflow also offers an `oss`
+image source, which downloads the public toolchain tar and needs no registry
+secret.
+
+After a successful run, download `StereoInfer_S100.tar.gz` directly from the
+workflow run. Tags such as `v1.0.0` additionally publish the package under
+GitHub Releases. Copy it to the board with:
+
+```bash
+scp StereoInfer_S100.tar.gz root@<board-ip>:/userdata/
+```
+
+On the board:
+
+```bash
+cd /userdata
+tar -xzf StereoInfer_S100.tar.gz
+cd StereoInfer_S100
+source setup_env.sh
+scripts/run_infer.sh \
+  config/dstereo_s100_320_640_352_v2.4.hbm \
+  samples/img \
+  0.10
+```
+
 ## Project Structure
 
 ```

@@ -57,6 +57,26 @@ void StereoNetNode::set_node_params() {
   this->declare_parameter<std::string>("left_camera_info_topic", "/image_combine_raw/left/camera_info");
   left_camera_info_topic_ = this->get_parameter("left_camera_info_topic").as_string();
 
+  this->declare_parameter<bool>("use_separate_topics", false);
+  use_separate_topics_ = this->get_parameter("use_separate_topics").as_bool();
+  this->declare_parameter<std::string>("left_image_topic", "/left/image_raw");
+  left_image_topic_ = this->get_parameter("left_image_topic").as_string();
+  this->declare_parameter<std::string>("right_image_topic", "/right/image_raw");
+  right_image_topic_ = this->get_parameter("right_image_topic").as_string();
+
+#ifdef HAVE_FOXGLOVE_MSGS
+  this->declare_parameter<bool>("use_h265_topics", false);
+  use_h265_topics_ = this->get_parameter("use_h265_topics").as_bool();
+  this->declare_parameter<std::string>("left_h265_topic", "/image_left_raw/h265");
+  left_h265_topic_ = this->get_parameter("left_h265_topic").as_string();
+  this->declare_parameter<std::string>("right_h265_topic", "/image_right_raw/h265");
+  right_h265_topic_ = this->get_parameter("right_h265_topic").as_string();
+  if (use_h265_topics_ && use_separate_topics_) {
+    RCLCPP_WARN(this->get_logger(), "=> use_h265_topics and use_separate_topics are both true; use_h265_topics takes priority");
+    use_separate_topics_ = false;
+  }
+#endif
+
   this->declare_parameter<std::string>("depth_image_topic", "~/stereonet_depth");
   depth_image_topic_ = this->get_parameter("depth_image_topic").as_string();
   this->declare_parameter<std::string>("depth_camera_info_topic", "~/stereonet_depth/camera_info");
@@ -298,6 +318,12 @@ void StereoNetNode::set_node_params() {
       std::endl
           << "stereonet_model_file_path: " << stereonet_model_file_path_ << std::endl
           << "stereo_image_topic: " << stereo_image_topic_ << std::endl
+          << "[use_separate_topics, left_image_topic, right_image_topic]: [" << use_separate_topics_ << ", "
+          << left_image_topic_ << ", " << right_image_topic_ << "]" << std::endl
+#ifdef HAVE_FOXGLOVE_MSGS
+          << "[use_h265_topics, left_h265_topic, right_h265_topic]: [" << use_h265_topics_ << ", "
+          << left_h265_topic_ << ", " << right_h265_topic_ << "]" << std::endl
+#endif
           << "camera_info_topic: " << camera_info_topic_ << std::endl
           << "depth_image_topic: " << depth_image_topic_ << std::endl
           << "depth_camera_info_topic: " << depth_camera_info_topic_ << std::endl
@@ -529,6 +555,38 @@ void StereoNetNode::set_subscription_publisher() {
       this->infer_offline();
       infer_offline_timer_->cancel();
     });
+#ifdef HAVE_FOXGLOVE_MSGS
+  } else if (use_h265_topics_) {
+    // H265 CompressedVideo topics: time-synchronize and decode on-the-fly
+    left_h265_decoder_ = std::make_unique<H265Decoder>(3840, 2160, false);
+    right_h265_decoder_ = std::make_unique<H265Decoder>(3840, 2160, false);
+    left_h265_sub_.subscribe(this, left_h265_topic_, rmw_qos_profile_sensor_data);
+    right_h265_sub_.subscribe(this, right_h265_topic_, rmw_qos_profile_sensor_data);
+    h265_stereo_sync_ = std::make_shared<message_filters::Synchronizer<H265SyncPolicy>>(
+        H265SyncPolicy(10), left_h265_sub_, right_h265_sub_);
+    h265_stereo_sync_->registerCallback(
+        std::bind(&StereoNetNode::h265_sync_callback, this, std::placeholders::_1, std::placeholders::_2));
+    camera_info_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
+        camera_info_topic_, 10, std::bind(&StereoNetNode::camera_info_callback, this, std::placeholders::_1));
+    left_camera_info_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
+        left_camera_info_topic_, 10, std::bind(&StereoNetNode::left_camera_info_callback, this, std::placeholders::_1));
+    RCLCPP_WARN(this->get_logger(), "=> use_h265_topics mode: subscribing [%s] and [%s]",
+                left_h265_topic_.c_str(), right_h265_topic_.c_str());
+#endif
+  } else if (use_separate_topics_) {
+    // Separate left/right image topics: time-synchronize and combine on-the-fly
+    left_image_sub_.subscribe(this, left_image_topic_, rmw_qos_profile_sensor_data);
+    right_image_sub_.subscribe(this, right_image_topic_, rmw_qos_profile_sensor_data);
+    stereo_sync_ = std::make_shared<message_filters::Synchronizer<SyncPolicy>>(
+        SyncPolicy(10), left_image_sub_, right_image_sub_);
+    stereo_sync_->registerCallback(
+        std::bind(&StereoNetNode::stereo_sync_callback, this, std::placeholders::_1, std::placeholders::_2));
+    camera_info_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
+        camera_info_topic_, 10, std::bind(&StereoNetNode::camera_info_callback, this, std::placeholders::_1));
+    left_camera_info_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
+        left_camera_info_topic_, 10, std::bind(&StereoNetNode::left_camera_info_callback, this, std::placeholders::_1));
+    RCLCPP_WARN(this->get_logger(), "=> use_separate_topics mode: subscribing [%s] and [%s]",
+                left_image_topic_.c_str(), right_image_topic_.c_str());
   } else {
     stereo_image_sub_ = this->create_subscription<sensor_msgs::msg::Image>(
         stereo_image_topic_, 1, std::bind(&StereoNetNode::stereo_image_callback, this, std::placeholders::_1));
@@ -599,12 +657,117 @@ void StereoNetNode::publish_static_tf() {
   static_broadcaster_->sendTransform(t);
 }
 
+void StereoNetNode::stereo_sync_callback(const sensor_msgs::msg::Image::ConstSharedPtr &left_msg,
+                                          const sensor_msgs::msg::Image::ConstSharedPtr &right_msg) {
+  // Convert left image to BGR
+  auto decode_bgr = [&](const sensor_msgs::msg::Image::ConstSharedPtr &msg) -> cv::Mat {
+    cv::Mat bgr;
+    if (msg->encoding == "bgr8") {
+      bgr = cv::Mat(msg->height, msg->width, CV_8UC3,
+                    const_cast<uint8_t *>(msg->data.data()), msg->step).clone();
+    } else if (msg->encoding == "rgb8") {
+      cv::Mat rgb(msg->height, msg->width, CV_8UC3,
+                  const_cast<uint8_t *>(msg->data.data()), msg->step);
+      cv::cvtColor(rgb, bgr, cv::COLOR_RGB2BGR);
+    } else if (msg->encoding == "nv12") {
+      ImgConvertUtils::nv12_to_bgr_mat(const_cast<uint8_t *>(msg->data.data()), bgr, msg->width, msg->height);
+    } else {
+      RCLCPP_ERROR_ONCE(this->get_logger(), "=> stereo_sync_callback: unsupported encoding: %s",
+                        msg->encoding.c_str());
+    }
+    return bgr;
+  };
+
+  cv::Mat left_bgr = decode_bgr(left_msg);
+  cv::Mat right_bgr = decode_bgr(right_msg);
+  if (left_bgr.empty() || right_bgr.empty()) return;
+
+  // Resize right to match left if sizes differ
+  if (left_bgr.size() != right_bgr.size()) {
+    cv::resize(right_bgr, right_bgr, left_bgr.size());
+  }
+
+  // Stack vertically: left on top, right on bottom — matches the combined topic convention
+  cv::Mat combined;
+  cv::vconcat(left_bgr, right_bgr, combined);
+
+  // Pack into a sensor_msgs::Image (bgr8) and forward to the existing callback
+  auto combined_msg = std::make_shared<sensor_msgs::msg::Image>();
+  combined_msg->header = left_msg->header;
+  combined_msg->height = combined.rows;
+  combined_msg->width = combined.cols;
+  combined_msg->encoding = "bgr8";
+  combined_msg->step = static_cast<uint32_t>(combined.step);
+  combined_msg->data.assign(combined.data, combined.data + combined.total() * combined.elemSize());
+
+  stereo_image_callback(combined_msg);
+}
+
+#ifdef HAVE_FOXGLOVE_MSGS
+void StereoNetNode::h265_sync_callback(const foxglove_msgs::msg::CompressedVideo::ConstSharedPtr &left_msg,
+                                        const foxglove_msgs::msg::CompressedVideo::ConstSharedPtr &right_msg) {
+  cv::Mat left_bgr, right_bgr;
+
+  bool left_ok = left_h265_decoder_->Decode(left_msg->data, left_bgr);
+  bool right_ok = right_h265_decoder_->Decode(right_msg->data, right_bgr);
+
+  if (!left_ok || !right_ok || left_bgr.empty() || right_bgr.empty()) {
+    // Pipeline filling — silently skip until both decoders produce frames
+    return;
+  }
+
+  // Resize right to match left if sizes differ (shouldn't normally happen)
+  if (left_bgr.size() != right_bgr.size()) {
+    cv::resize(right_bgr, right_bgr, left_bgr.size());
+  }
+
+  // Stack vertically: left on top, right on bottom — matches the combined topic convention
+  cv::Mat combined;
+  cv::vconcat(left_bgr, right_bgr, combined);
+
+  auto combined_msg = std::make_shared<sensor_msgs::msg::Image>();
+  // foxglove_msgs::CompressedVideo has no header — use timestamp + frame_id directly
+#if defined(FOXGLOVE_COMPRESSED_VIDEO_HAS_HEADER)
+  combined_msg->header = left_msg->header;
+#else
+  combined_msg->header.stamp = left_msg->timestamp;
+  combined_msg->header.frame_id = left_msg->frame_id;
+#endif
+  combined_msg->height = combined.rows;
+  combined_msg->width = combined.cols;
+  combined_msg->encoding = "bgr8";
+  combined_msg->step = static_cast<uint32_t>(combined.step);
+  combined_msg->data.assign(combined.data, combined.data + combined.total() * combined.elemSize());
+
+  stereo_image_callback(combined_msg);
+}
+#endif
+
 void StereoNetNode::stereo_image_callback(const sensor_msgs::msg::Image::SharedPtr msg) {
   auto now = this->get_clock()->now();
   auto latency = (now - msg->header.stamp).seconds() * 1000;
   RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
                        "=> receive stereo image, format: %s, stamp: %u.%u, latency: %.2f ms", msg->encoding.c_str(),
                        msg->header.stamp.sec, msg->header.stamp.nanosec, latency);
+
+  // Detect input resolution change — reset maps/intrinsics so they are rebuilt
+  {
+    int cur_w = msg->width;
+    int cur_h = msg->height / 2;
+    if (cur_w != last_input_w_ || cur_h != last_input_h_) {
+      if (last_input_w_ != -1) {
+        RCLCPP_WARN(this->get_logger(),
+                    "\033[33m=> input resolution changed [%dx%d] -> [%dx%d], rebuilding undistmap\033[0m",
+                    last_input_w_, last_input_h_, cur_w, cur_h);
+      }
+      last_input_w_ = cur_w;
+      last_input_h_ = cur_h;
+      camera_info_updated_ = false;
+      calc_fov_flag_ = false;
+      if (stereo_rectifier_) stereo_rectifier_->reset();
+      if (orignal_camera_intrinsic_) *camera_intrinsic_ = *orignal_camera_intrinsic_;
+    }
+  }
 
   if (calib_method_ == "custom" && camera_info_updated_ == false) {
     int model_input_w = 0, model_input_h = 0;

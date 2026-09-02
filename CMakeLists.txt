@@ -15,6 +15,7 @@ find_package(message_filters REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(OpenMP REQUIRED)
+find_package(foxglove_msgs QUIET)
 
 # =================================== FetchContent ====================================
 # include(FetchContent)
@@ -104,6 +105,7 @@ include_directories(
   ${concurrentqueue_DIR}
   ${magic_enum_DIR}
   ${bs_thread_pool_DIR}
+  ${SYS_ROOT}/usr/hobot/include
 )
 
 link_directories(
@@ -114,7 +116,7 @@ link_directories(
 )
 
 # =================================== build stereonet model component =================
-add_library(stereonet_model_component SHARED
+set(STEREONET_SOURCES
   src/stereonet_component.cpp
   src/stereonet_process.cpp
   src/timer_utils.cpp
@@ -126,12 +128,17 @@ add_library(stereonet_model_component SHARED
   src/epipolar_align.cpp
   src/feature_epipolar_align.cpp
 )
+if(foxglove_msgs_FOUND)
+  list(APPEND STEREONET_SOURCES src/h265_decoder.cc)
+endif()
+
+add_library(stereonet_model_component SHARED ${STEREONET_SOURCES})
 target_compile_features(stereonet_model_component PUBLIC c_std_99 cxx_std_17) # Require C99 and C++17
 target_include_directories(stereonet_model_component PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-ament_target_dependencies(stereonet_model_component
+set(AMENT_DEPS
   rclcpp
   rclcpp_components
   cv_bridge
@@ -141,6 +148,19 @@ ament_target_dependencies(stereonet_model_component
   tf2_ros
   geometry_msgs
 )
+if(foxglove_msgs_FOUND)
+  list(APPEND AMENT_DEPS foxglove_msgs)
+  add_definitions(-DHAVE_FOXGLOVE_MSGS)
+  message(STATUS "foxglove_msgs found — H265 CompressedVideo support enabled")
+else()
+  message(STATUS "foxglove_msgs NOT found — H265 CompressedVideo support disabled")
+endif()
+ament_target_dependencies(stereonet_model_component ${AMENT_DEPS})
+set(CODEC_LIBS "")
+if(foxglove_msgs_FOUND)
+  list(APPEND CODEC_LIBS avcodec avutil swscale)
+endif()
+
 target_link_libraries(stereonet_model_component
   ${rclcpp_LIBRARIES}
   ${sensor_msgs_LIBRARIES}
@@ -148,6 +168,7 @@ target_link_libraries(stereonet_model_component
   alog
   gflags
   ${DNN_LIBS}
+  ${CODEC_LIBS}
   pthread
   ${PCL_LIBRARIES}
   OpenMP::OpenMP_CXX

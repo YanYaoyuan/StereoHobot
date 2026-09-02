@@ -1,5 +1,6 @@
 #include "h265_decoder.h"
 #include <atomic>
+#include <cstring>
 #include <iostream>
 #include <vector>
 
@@ -8,6 +9,46 @@ void log_hevc_decode_limited(const char *msg) {
   static std::atomic<int> n{0};
   if (n.fetch_add(1) < 40)
     std::cerr << "[H265Decoder] " << msg << std::endl;
+}
+
+/** HEVC NAL header 首字节：forbidden_zero_bit 须为 0；nal_unit_type 须非 0 */
+static bool hevc_nal_header_ok(uint8_t b) {
+  if (b & 0x80)
+    return false;
+  int nut = (b >> 1) & 0x3F;
+  return nut != 0;
+}
+
+/**
+ * 将「4 字节大端长度 + NAL 负载」串联的 AU（常见 HVCC/mp4 风格）转为 Annex-B。
+ * 若整包能按长度字段完整切分且每个 NAL 头合法则返回 true；否则 false（走单 NAL 前补起始码）。
+ */
+static bool try_hvcc_length_au_to_annex_b(const uint8_t *d, size_t n,
+                                          std::vector<uint8_t> &out) {
+  out.clear();
+  constexpr size_t kMaxNal = 16u * 1024u * 1024u;
+  size_t off = 0;
+  while (off + 4 <= n) {
+    uint32_t len = (static_cast<uint32_t>(d[off]) << 24) |
+                   (static_cast<uint32_t>(d[off + 1]) << 16) |
+                   (static_cast<uint32_t>(d[off + 2]) << 8) |
+                   static_cast<uint32_t>(d[off + 3]);
+    off += 4;
+    if (len == 0 || len > kMaxNal || len > n - off)
+      return false;
+    if (!hevc_nal_header_ok(d[off]))
+      return false;
+    out.insert(out.end(), {0, 0, 0, 1});
+    out.insert(out.end(), d + off, d + off + len);
+    off += len;
+  }
+  if (off != n || out.empty())
+    return false;
+  static std::atomic<int> hvcc_log{0};
+  if (hvcc_log.fetch_add(1) < 4)
+    std::cerr << "[H265Decoder] payload parsed as HVCC-style length-prefixed NALs -> Annex-B"
+              << std::endl;
+  return true;
 }
 } // namespace
 
@@ -70,7 +111,8 @@ bool H265Decoder::init() {
     return false;
   }
 
-  codec_ctx_->thread_count = 1;
+  // 0 = FFmpeg 按 CPU 数选线程，软件 HEVC 解码更不容易卡顿
+  codec_ctx_->thread_count = 0;
 #if defined(AV_EF_IGNORE_ERR)
   codec_ctx_->err_recognition |= AV_EF_IGNORE_ERR;
 #endif
@@ -158,18 +200,25 @@ bool H265Decoder::decode(const uint8_t *data, size_t size, cv::Mat &bgr_out) {
 
   stats_.packets_total++;
 
-  std::vector<uint8_t> annex_scratch;
+  std::vector<uint8_t> scratch;
   const uint8_t *feed = data;
   size_t feed_size = size;
-  if (!annex_b_starts(data, size)) {
-    annex_scratch.reserve(size + 4);
-    annex_scratch.push_back(0);
-    annex_scratch.push_back(0);
-    annex_scratch.push_back(0);
-    annex_scratch.push_back(1);
-    annex_scratch.insert(annex_scratch.end(), data, data + size);
-    feed = annex_scratch.data();
-    feed_size = annex_scratch.size();
+
+  if (annex_b_starts(data, size)) {
+    // 已是 Annex-B（00 00 01 / 00 00 00 01）
+  } else if (try_hvcc_length_au_to_annex_b(data, size, scratch)) {
+    feed = scratch.data();
+    feed_size = scratch.size();
+  } else {
+    // 无前导码且非可解析的 HVCC 串联：假定整包为单个 NAL，前补 00 00 00 01（与 demo 一致）
+    scratch.reserve(size + 4);
+    scratch.push_back(0);
+    scratch.push_back(0);
+    scratch.push_back(0);
+    scratch.push_back(1);
+    scratch.insert(scratch.end(), data, data + size);
+    feed = scratch.data();
+    feed_size = scratch.size();
   }
 
   if (require_entry_point_) {
@@ -198,28 +247,67 @@ bool H265Decoder::decode(const uint8_t *data, size_t size, cv::Mat &bgr_out) {
   }
   memcpy(packet_->data, feed, feed_size);
 
+  auto recv_and_convert = [this, &bgr_out](bool &got_out) -> int {
+    int r = avcodec_receive_frame(codec_ctx_, frame_);
+    if (r == 0) {
+      if (convert_frame_to_bgr(frame_, bgr_out)) {
+        got_out = true;
+        stats_.frames_out++;
+      }
+    } else if (r != AVERROR(EAGAIN) && r != AVERROR_EOF) {
+      stats_.recv_fail++;
+      av_strerror(r, stats_.last_err, sizeof(stats_.last_err));
+      if (r == AVERROR_INVALIDDATA || r == AVERROR(EINVAL)) {
+        if (codec_ctx_)
+          avcodec_flush_buffers(codec_ctx_);
+        entry_point_ok_ = !require_entry_point_;
+        stats_.sync_established = entry_point_ok_;
+        log_hevc_decode_limited("receive_frame error: flushed decoder + reset entry gate");
+      }
+    }
+    return r;
+  };
+
+  // 先 drain，避免内部缓冲满导致 avcodec_send_packet 长期返回 EAGAIN
+  bool got = false;
+  for (;;) {
+    int r = recv_and_convert(got);
+    if (r == AVERROR(EAGAIN) || r == AVERROR_EOF)
+      break;
+    if (r < 0)
+      break;
+  }
+
   int ret = avcodec_send_packet(codec_ctx_, packet_);
+  if (ret == AVERROR(EAGAIN)) {
+    for (int k = 0; k < 8 && ret == AVERROR(EAGAIN); ++k) {
+      int r = recv_and_convert(got);
+      if (r == AVERROR(EAGAIN) || r == AVERROR_EOF)
+        break;
+      if (r < 0)
+        break;
+      ret = avcodec_send_packet(codec_ctx_, packet_);
+    }
+  }
   if (ret < 0) {
     stats_.send_fail++;
     av_strerror(ret, stats_.last_err, sizeof(stats_.last_err));
-    return false;
+    if (ret == AVERROR_INVALIDDATA || ret == AVERROR(EINVAL)) {
+      if (codec_ctx_)
+        avcodec_flush_buffers(codec_ctx_);
+      entry_point_ok_ = !require_entry_point_;
+      stats_.sync_established = entry_point_ok_;
+      log_hevc_decode_limited("send_packet failed: flushed decoder + reset entry gate");
+    }
+    return got;
   }
 
-  bool got = false;
   for (;;) {
-    ret = avcodec_receive_frame(codec_ctx_, frame_);
-    if (ret == 0) {
-      if (convert_frame_to_bgr(frame_, bgr_out)) {
-        got = true;
-        stats_.frames_out++;
-      }
-    } else if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+    int r = recv_and_convert(got);
+    if (r == AVERROR(EAGAIN) || r == AVERROR_EOF)
       break;
-    } else {
-      stats_.recv_fail++;
-      av_strerror(ret, stats_.last_err, sizeof(stats_.last_err));
+    if (r < 0)
       break;
-    }
   }
 
   return got;

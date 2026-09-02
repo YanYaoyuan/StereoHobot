@@ -12,6 +12,8 @@
 #include <csignal>
 #include <cmath>
 #include <limits>
+#include <algorithm>
+#include <cctype>
 
 #include <rclcpp/rclcpp.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
@@ -22,8 +24,14 @@
 #include <sensor_msgs/msg/point_field.hpp>
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <opencv2/opencv.hpp>
+#include <opencv2/core/version.hpp>
 
 #include "BS_thread_pool.hpp"
+
+#include <tf2_ros/static_transform_broadcaster.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 
 #include "h265_decoder.h"
 #include "stereonet_process.h"
@@ -31,8 +39,56 @@
 #include "img_convert_utils.h"
 #include "feature_epipolar_align.h"
 #include "calib_parser.h"
+#include "stereo_rectify.h"
 
 namespace fs = std::filesystem;
+
+namespace {
+
+void to_lower_inplace(std::string &s) {
+  std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+}
+
+/** OpenCV 伪彩色：turbo/viridis 等需 OpenCV>=4.5，否则降级 JET */
+int colormap_id_from_name(const std::string &name, rclcpp::Logger logger, bool *used_fallback) {
+  *used_fallback = false;
+  std::string s = name;
+  to_lower_inplace(s);
+  if (s.empty())
+    s = "turbo";
+
+#if CV_VERSION_MAJOR > 4 || (CV_VERSION_MAJOR == 4 && CV_VERSION_MINOR >= 5)
+  if (s == "turbo")
+    return cv::COLORMAP_TURBO;
+  if (s == "viridis")
+    return cv::COLORMAP_VIRIDIS;
+  if (s == "inferno")
+    return cv::COLORMAP_INFERNO;
+  if (s == "magma")
+    return cv::COLORMAP_MAGMA;
+  if (s == "plasma")
+    return cv::COLORMAP_PLASMA;
+#endif
+  if (s == "turbo" || s == "viridis" || s == "inferno" || s == "magma" || s == "plasma") {
+    RCLCPP_WARN(logger,
+                "depth_color_colormap '%s' needs OpenCV>=4.5; using jet (upgrade OpenCV for turbo/viridis)",
+                s.c_str());
+    *used_fallback = true;
+    return cv::COLORMAP_JET;
+  }
+  if (s == "jet")
+    return cv::COLORMAP_JET;
+  if (s == "hot")
+    return cv::COLORMAP_HOT;
+  if (s == "bone")
+    return cv::COLORMAP_BONE;
+  if (s == "rainbow")
+    return cv::COLORMAP_RAINBOW;
+  RCLCPP_WARN(logger, "Unknown depth_color_colormap '%s', using jet", name.c_str());
+  *used_fallback = true;
+  return cv::COLORMAP_JET;
+}
+} // namespace
 
 // ========================================================================================
 // Helpers
@@ -96,16 +152,7 @@ static int64_t stamp_to_ns(const builtin_interfaces::msg::Time &stamp) {
          static_cast<int64_t>(stamp.nanosec);
 }
 
-static bool cv_mat3x3_finite(const cv::Mat &m) {
-  if (m.empty() || m.rows != 3 || m.cols != 3 || m.type() != CV_64F)
-    return false;
-  for (int r = 0; r < 3; ++r)
-    for (int c = 0; c < 3; ++c)
-      if (!std::isfinite(m.at<double>(r, c))) return false;
-  return true;
-}
-
-/** Scale pinhole K: independent scale_w / scale_h so (cx,cy) stay inside curr image when aspect matches calib. */
+/** Scale pinhole K when decoded image size ≠ calib reference size (no undistort/remap). */
 static cv::Mat scaled_camera_matrix_wh(const cv::Mat &K_calib, double scale_w, double scale_h) {
   cv::Mat K = cv::Mat::eye(3, 3, CV_64F);
   K.at<double>(0, 0) = K_calib.at<double>(0, 0) * scale_w;
@@ -113,23 +160,6 @@ static cv::Mat scaled_camera_matrix_wh(const cv::Mat &K_calib, double scale_w, d
   K.at<double>(0, 2) = K_calib.at<double>(0, 2) * scale_w;
   K.at<double>(1, 2) = K_calib.at<double>(1, 2) * scale_h;
   return K;
-}
-
-/**
- * initUndistortRectifyMap 在部分 OpenCV 版本上，对「8 参有理畸变 + 极大 k1」会在 C++ 层直接 SIGSEGV。
- * 默认只用前 N 项（Brown k1,k2,p1,p2,k3），几何略差于完整 8 参，但能稳定建图。
- * max_coeffs <= 0：使用 YAML 中的完整 D。
- */
-static cv::Mat slice_distortion_for_undistort(const cv::Mat &d_in, int max_coeffs) {
-  if (d_in.empty()) return d_in;
-  const int total = static_cast<int>(d_in.total());
-  int use = total;
-  if (max_coeffs > 0 && max_coeffs < total)
-    use = max_coeffs;
-  if (use == total)
-    return d_in;
-  cv::Mat col = d_in.reshape(1, total);
-  return col.rowRange(0, use).clone().reshape(1, use);
 }
 
 // ========================================================================================
@@ -205,16 +235,15 @@ private:
     frame_id_ = get_or_declare_parameter<std::string>("frame_id", "camera_link");
     pc_downsample_step_ = get_or_declare_parameter<int>("pointcloud_downsample_step", 2);
     pc_depth_max_ = get_or_declare_parameter<double>("pointcloud_depth_max", 5.0);
-    undistort_use_stereo_rectify_ =
-        get_or_declare_parameter<bool>("undistort_use_stereo_rectify", false);
-    // 0 = use full D from YAML; 5 = Brown 5 项，规避极端 8 参有理模型在 initUndistortRectifyMap 内崩溃
-    undistort_dist_coeff_count_ =
-        get_or_declare_parameter<int>("undistort_dist_coeff_count", 5);
-    undistort_force_no_distortion_ =
-        get_or_declare_parameter<bool>("undistort_force_no_distortion", false);
-    // <=0：不启用；任一眼 |k1| 超过阈值则左右眼均改用零 D 建图（避免极大 k1 在 OpenCV 内仍 SIGSEGV）
-    undistort_extreme_k1_threshold_ =
-        get_or_declare_parameter<double>("undistort_extreme_k1_threshold", 2.0);
+
+    publish_depth_color_ = get_or_declare_parameter<bool>("publish_depth_color", true);
+    depth_color_topic_ = get_or_declare_parameter<std::string>("depth_color_topic", "~/stereonet_depth_color");
+    depth_color_max_m_ = get_or_declare_parameter<double>("depth_color_max_m", 8.0);
+    depth_color_gamma_ = get_or_declare_parameter<double>("depth_color_gamma", 0.55);
+    std::string depth_cm_name =
+        get_or_declare_parameter<std::string>("depth_color_colormap", "turbo");
+    bool cm_fb = false;
+    depth_color_cmap_id_ = colormap_id_from_name(depth_cm_name, get_logger(), &cm_fb);
 
     // Camera intrinsic loading (priority: calib_yaml > intrinsic_file > params)
     bool intrinsic_loaded = false;
@@ -234,6 +263,9 @@ private:
       }
     }
 
+    body_frame_id_  = get_or_declare_parameter<std::string>("body_frame_id",  "body");
+    lidar_frame_id_ = get_or_declare_parameter<std::string>("lidar_frame_id", "lidar");
+
     if (!calib_yaml.empty() && fs::exists(calib_yaml)) {
       CameraCalib left_cam, right_cam;
       if (parseFullStereoCalibYaml(calib_yaml, left_cam, right_cam)) {
@@ -249,150 +281,30 @@ private:
         calib_ref_w_ = left_cam.width > 0 ? left_cam.width : 1920;
         calib_ref_h_ = left_cam.height > 0 ? left_cam.height : 1080;
         calib_K_left_ = left_cam.K.clone();
-        calib_D_left_ = left_cam.D.clone();
-        calib_K_right_ = right_cam.K.clone();
-        calib_D_right_ = right_cam.D.clone();
-        undistort_maps_cache_w_ = 0;
-        undistort_maps_cache_h_ = 0;
-        left_map1_.release();
-        left_map2_.release();
-        right_map1_.release();
-        right_map2_.release();
+        // Store left camera extrinsics for TF publishing
+        calib_R_BC_left_ = left_cam.R_BC.clone();
+        calib_T_BC_left_ = left_cam.T_BC;
 
-        if (!undistort_use_stereo_rectify_) {
-          // Per-eye undistort: scale K by curr_width vs calib width, adjust cy for vertical
-          // center crop; D unchanged; initUndistortRectifyMap(K_scaled, D, I, K_scaled, size).
-          undistort_scaled_k_mode_ = true;
-          use_rectification_ = true;
-          camera_intrinsic_.fx = calib_K_left_.at<double>(0, 0);
-          camera_intrinsic_.fy = calib_K_left_.at<double>(1, 1);
-          camera_intrinsic_.cx = calib_K_left_.at<double>(0, 2);
-          camera_intrinsic_.cy = calib_K_left_.at<double>(1, 2);
-          camera_intrinsic_.baseline = stereo_baseline_m_;
-          RCLCPP_INFO(get_logger(),
-                      "Calib YAML: scaled-K undistort (see undistort tutorial). "
-                      "Ref %dx%d; remap maps match first decoded frame size. baseline=%.5f m. "
-                      "undistort_dist_coeff_count=%d (0=full D from YAML); "
-                      "extreme_k1_thresh=%.3f force_no_dist=%s",
-                      calib_ref_w_, calib_ref_h_, stereo_baseline_m_, undistort_dist_coeff_count_,
-                      undistort_extreme_k1_threshold_, undistort_force_no_distortion_ ? "true" : "false");
-          intrinsic_loaded = true;
+        // Also parse lidar extrinsics for lidar→camera_link TF
+        LidarCalib lidar_cal;
+        if (parseLidarCalibYaml(calib_yaml, lidar_cal)) {
+          calib_R_BL_ = lidar_cal.R_BL.clone();
+          calib_t_BL_ = lidar_cal.t_BL;
         } else {
-          undistort_scaled_k_mode_ = false;
-          cv::Mat R1, R2, P1, P2, Q;
-          cv::Size img_size(calib_ref_w_, calib_ref_h_);
-          cv::Mat Dl_sr = slice_distortion_for_undistort(left_cam.D, undistort_dist_coeff_count_);
-          cv::Mat Dr_sr = slice_distortion_for_undistort(right_cam.D, undistort_dist_coeff_count_);
-          if (Dl_sr.total() != left_cam.D.total() || Dr_sr.total() != right_cam.D.total()) {
-            RCLCPP_WARN(get_logger(),
-                        "stereoRectify path: using truncated D (undistort_dist_coeff_count=%d) for stability",
-                        undistort_dist_coeff_count_);
-          }
-          applyUndistortDistortionSafety(Dl_sr, Dr_sr, "stereoRectify path");
-
-          cv::stereoRectify(left_cam.K, Dl_sr, right_cam.K, Dr_sr,
-                            img_size, R, T, R1, R2, P1, P2, Q,
-                            cv::CALIB_ZERO_DISPARITY, 0, img_size);
-
-          bool stereo_ok =
-              cv_mat3x3_finite(P1(cv::Rect(0, 0, 3, 3))) &&
-              std::isfinite(P1.at<double>(0, 2)) && std::isfinite(P1.at<double>(1, 2)) &&
-              std::isfinite(P2.at<double>(0, 3)) && std::isfinite(P1.at<double>(0, 0)) &&
-              std::abs(P1.at<double>(0, 0)) > 1e-6;
-
-          if (!stereo_ok) {
-            cv::stereoRectify(left_cam.K, Dl_sr, right_cam.K, Dr_sr,
-                              img_size, R, T, R1, R2, P1, P2, Q,
-                              cv::CALIB_ZERO_DISPARITY, 1, img_size);
-            stereo_ok =
-                cv_mat3x3_finite(P1(cv::Rect(0, 0, 3, 3))) &&
-                std::isfinite(P1.at<double>(0, 2)) && std::isfinite(P1.at<double>(1, 2)) &&
-                std::isfinite(P2.at<double>(0, 3)) && std::isfinite(P1.at<double>(0, 0)) &&
-                std::abs(P1.at<double>(0, 0)) > 1e-6;
-          }
-
-          if (stereo_ok) {
-            RCLCPP_INFO(get_logger(),
-                        "Stereo rectification OK (stereoRectify). baseline≈%.5f m from P2",
-                        std::abs(P2.at<double>(0, 3) / P1.at<double>(0, 0)));
-          } else {
-            RCLCPP_WARN(get_logger(),
-                        "stereoRectify failed; falling back to undistort at calib resolution.");
-            R1 = cv::Mat::eye(3, 3, CV_64F);
-            R2 = cv::Mat::eye(3, 3, CV_64F);
-            P1 = left_cam.K.clone();
-            P2 = right_cam.K.clone();
-            cv::Rect roi1, roi2;
-            cv::Mat new1 = cv::getOptimalNewCameraMatrix(
-                left_cam.K, Dl_sr, img_size, 1.0, img_size, &roi1);
-            cv::Mat new2 = cv::getOptimalNewCameraMatrix(
-                right_cam.K, Dr_sr, img_size, 1.0, img_size, &roi2);
-            if (cv_mat3x3_finite(new1) && cv_mat3x3_finite(new2) &&
-                std::isfinite(new1.at<double>(0, 2)) &&
-                std::isfinite(new1.at<double>(1, 2))) {
-              P1 = new1;
-              P2 = new2;
-            }
-            camera_intrinsic_.baseline =
-                (tx_abs > 1e-4) ? tx_abs : baseline_from_T;
-          }
-
-          // CV_32FC1：map1=map_x map2=map_y；强畸变/8 参 D 下 CV_16SC2 建图易数值溢出导致崩溃
-          bool stereo_maps_built = false;
-          {
-            const int prev_ocv_threads = cv::getNumThreads();
-            cv::setNumThreads(1);
-            try {
-              cv::initUndistortRectifyMap(left_cam.K, Dl_sr, R1, P1, img_size, CV_32FC1,
-                                          left_map1_, left_map2_);
-              cv::initUndistortRectifyMap(right_cam.K, Dr_sr, R2, P2, img_size, CV_32FC1,
-                                          right_map1_, right_map2_);
-              stereo_maps_built = true;
-            } catch (const cv::Exception &e) {
-              RCLCPP_ERROR(get_logger(), "initUndistortRectifyMap (stereoRectify path) failed: %s",
-                           e.what());
-              left_map1_.release();
-              left_map2_.release();
-              right_map1_.release();
-              right_map2_.release();
-            }
-            cv::setNumThreads(prev_ocv_threads);
-          }
-
-          if (stereo_maps_built) {
-            use_rectification_ = true;
-
-            camera_intrinsic_.fx = P1.at<double>(0, 0);
-            camera_intrinsic_.fy = P1.at<double>(1, 1);
-            camera_intrinsic_.cx = P1.at<double>(0, 2);
-            camera_intrinsic_.cy = P1.at<double>(1, 2);
-            if (stereo_ok && std::isfinite(P2.at<double>(0, 3)) &&
-                std::abs(P1.at<double>(0, 0)) > 1e-6) {
-              camera_intrinsic_.baseline =
-                  std::abs(P2.at<double>(0, 3) / P1.at<double>(0, 0));
-            }
-            if (!camera_intrinsic_.is_valid() || !std::isfinite(camera_intrinsic_.fx)) {
-              camera_intrinsic_.fx = left_cam.K.at<double>(0, 0);
-              camera_intrinsic_.fy = left_cam.K.at<double>(1, 1);
-              camera_intrinsic_.cx = left_cam.K.at<double>(0, 2);
-              camera_intrinsic_.cy = left_cam.K.at<double>(1, 2);
-              camera_intrinsic_.baseline = baseline_from_T;
-            }
-
-            RCLCPP_INFO(get_logger(),
-                        "Loaded stereo calibration YAML & stereoRectify path: %s  →  "
-                        "[fx=%.2f, fy=%.2f, cx=%.2f, cy=%.2f, baseline=%.5f m]",
-                        calib_yaml.c_str(), camera_intrinsic_.fx,
-                        camera_intrinsic_.fy, camera_intrinsic_.cx,
-                        camera_intrinsic_.cy, camera_intrinsic_.baseline);
-            intrinsic_loaded = true;
-          } else {
-            use_rectification_ = false;
-            RCLCPP_ERROR(get_logger(),
-                         "Stereo rectify maps not built; will fall back to intrinsic_file / fx,fy,cx,cy,baseline "
-                         "params if provided.");
-          }
+          RCLCPP_WARN(get_logger(), "No lidar extrinsics in calib YAML — lidar→camera_link TF disabled.");
         }
+
+        camera_intrinsic_.fx = calib_K_left_.at<double>(0, 0);
+        camera_intrinsic_.fy = calib_K_left_.at<double>(1, 1);
+        camera_intrinsic_.cx = calib_K_left_.at<double>(0, 2);
+        camera_intrinsic_.cy = calib_K_left_.at<double>(1, 2);
+        camera_intrinsic_.baseline = stereo_baseline_m_;
+
+        RCLCPP_INFO(get_logger(),
+                    "Calib YAML: no undistort/remap; left K @ ref %dx%d, baseline=%.5f m. "
+                    "If decoded size differs, fx,fy,cx,cy scale per frame.",
+                    calib_ref_w_, calib_ref_h_, stereo_baseline_m_);
+        intrinsic_loaded = true;
       } else {
         RCLCPP_ERROR(get_logger(),
                      "Failed to parse calib YAML: %s  (check format)",
@@ -429,6 +341,14 @@ private:
     // HEVC(FFmpeg)：与 demo 硬件解码类似，默认丢弃 GOP 中途的 AU，直到出现 VPS/SPS/PPS 或 IRAP
     hevc_require_entry_point_ =
         get_or_declare_parameter<bool>("hevc_require_entry_point", true);
+
+    // Stereo rectification (undistort + remap)
+    use_rectification_ = get_or_declare_parameter<bool>("use_rectification", false);
+    stereo_calib_file_ = get_or_declare_parameter<std::string>("stereo_calib_file", "");
+    if (use_rectification_ && !stereo_calib_file_.empty() && !fs::exists(stereo_calib_file_)) {
+      RCLCPP_ERROR(get_logger(), "stereo_calib_file not found: %s", stereo_calib_file_.c_str());
+      use_rectification_ = false;
+    }
   }
 
   // ====================== initialisation ========================================
@@ -482,6 +402,21 @@ private:
     model_input_h_ = raw_model_h;
     RCLCPP_INFO(get_logger(), "Model input size: %d x %d", model_input_w_, model_input_h_);
 
+    // Stereo rectifier
+    if (use_rectification_) {
+      if (stereo_calib_file_.empty()) {
+        RCLCPP_ERROR(get_logger(),
+                     "use_rectification=true but stereo_calib_file is empty; rectification disabled");
+        use_rectification_ = false;
+      } else {
+        stereo_rectifier_ = std::make_shared<StereoRectify>(stereo_calib_file_, get_logger());
+        RCLCPP_INFO(get_logger(), "StereoRectify enabled, calib: %s", stereo_calib_file_.c_str());
+      }
+    }
+
+    // Static TF: body_frame → camera_link  (= inv(T_B_C_left))
+    publish_camera_tf();
+
     if (camera_intrinsic_.is_valid()) {
       RCLCPP_INFO(get_logger(),
                   "Camera intrinsic [fx,fy,cx,cy,baseline]: %.2f, %.2f, "
@@ -520,6 +455,11 @@ private:
     if (publish_disp_) {
       disp_pub_ = create_publisher<sensor_msgs::msg::Image>(disp_topic_, 5);
       RCLCPP_INFO(get_logger(), "Publishing disp on: %s", disp_topic_.c_str());
+    }
+    if (publish_depth_color_) {
+      depth_color_pub_ = create_publisher<sensor_msgs::msg::Image>(depth_color_topic_, 5);
+      RCLCPP_INFO(get_logger(), "Publishing depth (colorized) on: %s  max_m=%.2f gamma=%.2f",
+                  depth_color_topic_.c_str(), depth_color_max_m_, depth_color_gamma_);
     }
 
     // Processing threads (keeps callbacks non-blocking)
@@ -634,121 +574,79 @@ private:
     return false;
   }
 
-  /**
-   * 极大 k1（如左目 ~8）在部分 OpenCV 上即使用 5 项 D，initUndistortRectifyMap 仍会 SIGSEGV。
-   * 强制左右眼使用相同的 D 策略，避免立体输入一边去畸变一边不去。
-   */
-  void applyUndistortDistortionSafety(cv::Mat &Dl, cv::Mat &Dr, const char *ctx) {
-    if (undistort_force_no_distortion_) {
-      RCLCPP_WARN(get_logger(), "%s: undistort_force_no_distortion=true → zero D (5×1) for both eyes.", ctx);
-      Dl = cv::Mat::zeros(5, 1, CV_64F);
-      Dr = cv::Mat::zeros(5, 1, CV_64F);
-      return;
-    }
-    if (undistort_extreme_k1_threshold_ <= 0.0)
-      return;
-    const auto k1_abs = [](const cv::Mat &d) -> double {
-      if (d.empty()) return 0.0;
-      return std::abs(d.at<double>(0, 0));
-    };
-    const bool el = k1_abs(Dl) > undistort_extreme_k1_threshold_;
-    const bool er = k1_abs(Dr) > undistort_extreme_k1_threshold_;
-    if (el || er) {
+  // ====================== static TF publisher ===================================
+
+  void publish_camera_tf() {
+    if (calib_R_BC_left_.empty()) {
       RCLCPP_WARN(get_logger(),
-                  "%s: |k1|>%.3f on left=%s right=%s (k1 L=%.4f R=%.4f) → zero D for BOTH eyes "
-                  "(avoid OpenCV initUndistortRectifyMap crash). Set undistort_extreme_k1_threshold=0 to "
-                  "disable this fallback.",
-                  ctx, undistort_extreme_k1_threshold_, el ? "yes" : "no", er ? "yes" : "no", k1_abs(Dl),
-                  k1_abs(Dr));
-      Dl = cv::Mat::zeros(5, 1, CV_64F);
-      Dr = cv::Mat::zeros(5, 1, CV_64F);
-    }
-  }
-
-  /** Build left/right remap for current decoded resolution (scaled K + fixed D). Caller holds undistort_mtx_. */
-  void updateScaledUndistortMapsUnlocked(int curr_w, int curr_h) {
-    if (!undistort_scaled_k_mode_)
-      return;
-    if (curr_w <= 0 || curr_h <= 0) {
-      RCLCPP_ERROR(get_logger(),
-                   "updateScaledUndistortMapsUnlocked: skip invalid curr size %dx%d",
-                   curr_w, curr_h);
-      return;
-    }
-    if (calib_ref_w_ <= 0 || calib_ref_h_ <= 0) {
-      RCLCPP_ERROR(get_logger(),
-                   "updateScaledUndistortMapsUnlocked: skip invalid calib_ref %dx%d",
-                   calib_ref_w_, calib_ref_h_);
-      return;
-    }
-    if (curr_w == undistort_maps_cache_w_ && curr_h == undistort_maps_cache_h_ &&
-        !left_map1_.empty()) {
-      RCLCPP_DEBUG(get_logger(),
-                   "updateScaledUndistortMapsUnlocked: reuse cached maps %dx%d",
-                   curr_w, curr_h);
+                  "No camera extrinsics loaded — skipping camera TF. "
+                  "Set calib_yaml_file to enable TF publishing.");
       return;
     }
 
-    const double scale_w = static_cast<double>(curr_w) / static_cast<double>(calib_ref_w_);
-    const double scale_h = static_cast<double>(curr_h) / static_cast<double>(calib_ref_h_);
-    cv::Mat Kl = scaled_camera_matrix_wh(calib_K_left_, scale_w, scale_h);
-    cv::Mat Kr = scaled_camera_matrix_wh(calib_K_right_, scale_w, scale_h);
+    // We want: parent = lidar_frame_id_,  child = frame_id_ (camera_link)
+    //
+    // Given body→lidar:  p_L = R_BL * p_B + t_BL
+    //       body→camera: p_C = R_BC * p_B + t_BC
+    //
+    // lidar→camera (what ROS TF needs):
+    //   p_L = R_BL * R_BC^T * p_C  +  (-R_BL * R_BC^T * t_BC + t_BL)
+    //   R_LC = R_BL * R_BC^T
+    //   t_LC = t_BL - R_BL * R_BC^T * t_BC
 
-    const cv::Size img_size(curr_w, curr_h);
-    cv::Mat Dl = slice_distortion_for_undistort(calib_D_left_, undistort_dist_coeff_count_);
-    cv::Mat Dr = slice_distortion_for_undistort(calib_D_right_, undistort_dist_coeff_count_);
-    applyUndistortDistortionSafety(Dl, Dr, "scaled-K undistort");
-    const cv::Mat R_eye = cv::Mat::eye(3, 3, CV_64F);
+    if (calib_R_BL_.empty()) {
+      RCLCPP_WARN(get_logger(),
+                  "No lidar extrinsics in calib YAML — cannot publish lidar→camera_link TF. "
+                  "Check that vita_calib.yaml contains a 'lidar' label with Extr_B_L.");
+      return;
+    }
+
+    cv::Mat R_BC = calib_R_BC_left_;
+    cv::Mat t_BC = cv::Mat(calib_T_BC_left_);
+    t_BC.convertTo(t_BC, CV_64F);
+
+    cv::Mat R_BL = calib_R_BL_;
+    cv::Mat t_BL = cv::Mat(calib_t_BL_);
+    t_BL.convertTo(t_BL, CV_64F);
+
+    cv::Mat R_LC = R_BL * R_BC.t();
+    cv::Mat t_LC = t_BL - R_BL * R_BC.t() * t_BC;
+
+    tf2::Matrix3x3 tf_rot(
+        R_LC.at<double>(0, 0), R_LC.at<double>(0, 1), R_LC.at<double>(0, 2),
+        R_LC.at<double>(1, 0), R_LC.at<double>(1, 1), R_LC.at<double>(1, 2),
+        R_LC.at<double>(2, 0), R_LC.at<double>(2, 1), R_LC.at<double>(2, 2));
+    tf2::Quaternion q;
+    tf_rot.getRotation(q);
+    q.normalize();
+
+    geometry_msgs::msg::TransformStamped ts;
+    ts.header.stamp    = now();
+    ts.header.frame_id = lidar_frame_id_;
+    ts.child_frame_id  = frame_id_;
+
+    ts.transform.translation.x = t_LC.at<double>(0);
+    ts.transform.translation.y = t_LC.at<double>(1);
+    ts.transform.translation.z = t_LC.at<double>(2);
+    ts.transform.rotation.x = q.x();
+    ts.transform.rotation.y = q.y();
+    ts.transform.rotation.z = q.z();
+    ts.transform.rotation.w = q.w();
+
+    if (!static_tf_broadcaster_) {
+      static_tf_broadcaster_ =
+          std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
+    }
+    static_tf_broadcaster_->sendTransform(ts);
 
     RCLCPP_INFO(get_logger(),
-                "initUndistortRectifyMap: %dx%d CV_32FC1; D eff. left %zu right %zu "
-                "(slice_count=%d, 0=full from YAML)",
-                curr_w, curr_h, Dl.total(), Dr.total(), undistort_dist_coeff_count_);
-
-    const int prev_ocv_threads = cv::getNumThreads();
-    cv::setNumThreads(1);
-    try {
-      cv::initUndistortRectifyMap(Kl, Dl, R_eye, Kl, img_size, CV_32FC1, left_map1_, left_map2_);
-    } catch (const cv::Exception &e) {
-      cv::setNumThreads(prev_ocv_threads);
-      RCLCPP_ERROR(get_logger(), "initUndistortRectifyMap LEFT failed: %s", e.what());
-      left_map1_.release();
-      left_map2_.release();
-      return;
-    }
-    RCLCPP_INFO(get_logger(), "initUndistortRectifyMap: left maps map1 %dx%d ch=%d map2 %dx%d ch=%d",
-                left_map1_.rows, left_map1_.cols, left_map1_.channels(),
-                left_map2_.rows, left_map2_.cols, left_map2_.channels());
-    try {
-      cv::initUndistortRectifyMap(Kr, Dr, R_eye, Kr, img_size, CV_32FC1, right_map1_, right_map2_);
-    } catch (const cv::Exception &e) {
-      cv::setNumThreads(prev_ocv_threads);
-      RCLCPP_ERROR(get_logger(), "initUndistortRectifyMap RIGHT failed: %s", e.what());
-      left_map1_.release();
-      left_map2_.release();
-      right_map1_.release();
-      right_map2_.release();
-      return;
-    }
-    cv::setNumThreads(prev_ocv_threads);
-    RCLCPP_INFO(get_logger(), "initUndistortRectifyMap: right maps map1 %dx%d ch=%d map2 %dx%d ch=%d",
-                right_map1_.rows, right_map1_.cols, right_map1_.channels(),
-                right_map2_.rows, right_map2_.cols, right_map2_.channels());
-
-    undistort_maps_cache_w_ = curr_w;
-    undistort_maps_cache_h_ = curr_h;
-
-    camera_intrinsic_.fx = Kl.at<double>(0, 0);
-    camera_intrinsic_.fy = Kl.at<double>(1, 1);
-    camera_intrinsic_.cx = Kl.at<double>(0, 2);
-    camera_intrinsic_.cy = Kl.at<double>(1, 2);
-    camera_intrinsic_.baseline = stereo_baseline_m_;
-
-    RCLCPP_INFO(get_logger(),
-                "Undistort maps: image %dx%d (calib %dx%d) scale_w=%.4f scale_h=%.4f  "
-                "K_left fx=%.2f cx=%.2f cy=%.2f",
-                curr_w, curr_h, calib_ref_w_, calib_ref_h_, scale_w, scale_h,
-                camera_intrinsic_.fx, camera_intrinsic_.cx, camera_intrinsic_.cy);
+                "Published static TF: %s → %s  "
+                "t=[%.4f, %.4f, %.4f]  q=[%.4f, %.4f, %.4f, %.4f]",
+                lidar_frame_id_.c_str(), frame_id_.c_str(),
+                ts.transform.translation.x,
+                ts.transform.translation.y,
+                ts.transform.translation.z,
+                q.x(), q.y(), q.z(), q.w());
   }
 
   // ====================== processing thread =====================================
@@ -842,73 +740,65 @@ private:
     }
 
     cv::Mat left_rect, right_rect;
-    if (use_rectification_) {
-      if (trace) {
-        RCLCPP_INFO(get_logger(),
-                    "[trace pre_fc=%d] undistort: scaled_k=%s use_rectification_=true orig=%dx%d",
-                    pre_fc, undistort_scaled_k_mode_ ? "yes" : "no", orig_w, orig_h);
-      }
-      if (undistort_scaled_k_mode_) {
-        std::lock_guard<std::mutex> ulk(undistort_mtx_);
-        if (trace)
-          RCLCPP_INFO(get_logger(), "[trace pre_fc=%d] calling updateScaledUndistortMapsUnlocked", pre_fc);
-        updateScaledUndistortMapsUnlocked(orig_w, orig_h);
-        if (left_map1_.empty() || right_map1_.empty() ||
-            left_map1_.size() != left_bgr.size() ||
-            right_map1_.size() != right_bgr.size()) {
-          RCLCPP_ERROR(get_logger(),
-                       "remap/map mismatch: src %dx%d map1 %dx%d (right map %dx%d). Skip frame.",
-                       left_bgr.cols, left_bgr.rows,
-                       left_map1_.empty() ? -1 : left_map1_.cols,
-                       left_map1_.empty() ? -1 : left_map1_.rows,
-                       right_map1_.empty() ? -1 : right_map1_.cols,
-                       right_map1_.empty() ? -1 : right_map1_.rows);
-          return;
+    stereonet::CameraIntrinsic cam = camera_intrinsic_;
+    bool rect_ok = false;
+
+    if (stereo_rectifier_) {
+      // Detect resolution change → reset maps so they are rebuilt
+      if (orig_w != last_rect_w_ || orig_h != last_rect_h_) {
+        if (last_rect_w_ != -1) {
+          RCLCPP_WARN(get_logger(),
+                      "Input resolution changed [%dx%d] -> [%dx%d], rebuilding rectification maps",
+                      last_rect_w_, last_rect_h_, orig_w, orig_h);
         }
-        if (trace)
-          RCLCPP_INFO(get_logger(), "[trace pre_fc=%d] cv::remap LEFT start", pre_fc);
-        cv::remap(left_bgr, left_rect, left_map1_, left_map2_, cv::INTER_LINEAR,
-                  cv::BORDER_CONSTANT);
-        if (trace)
-          RCLCPP_INFO(get_logger(), "[trace pre_fc=%d] cv::remap LEFT done -> %dx%d", pre_fc,
-                      left_rect.cols, left_rect.rows);
-        if (trace)
-          RCLCPP_INFO(get_logger(), "[trace pre_fc=%d] cv::remap RIGHT start", pre_fc);
-        cv::remap(right_bgr, right_rect, right_map1_, right_map2_, cv::INTER_LINEAR,
-                  cv::BORDER_CONSTANT);
-        if (trace)
-          RCLCPP_INFO(get_logger(), "[trace pre_fc=%d] cv::remap RIGHT done -> %dx%d", pre_fc,
-                      right_rect.cols, right_rect.rows);
+        stereo_rectifier_->reset();
+        last_rect_w_ = orig_w;
+        last_rect_h_ = orig_h;
+      }
+      // build_undistmap is idempotent (skips if already built)
+      // Rectify directly to model input size to avoid a second resize step
+      if (stereo_rectifier_->build_undistmap(orig_w, orig_h, model_input_w_, model_input_h_) == 0) {
+        stereo_rectifier_->rectify(left_bgr, right_bgr, left_rect, right_rect);
+        // Get rectified intrinsics (already at model_input_w_ x model_input_h_)
+        stereo_rectifier_->get_intrinsic(cam.fx, cam.fy, cam.cx, cam.cy, cam.baseline);
+        rect_ok = true;
+        if (trace) {
+          RCLCPP_INFO(get_logger(),
+                      "[trace pre_fc=%d] rectified %dx%d -> %dx%d  fx=%.1f fy=%.1f cx=%.1f cy=%.1f bl=%.4f",
+                      pre_fc, orig_w, orig_h, model_input_w_, model_input_h_,
+                      cam.fx, cam.fy, cam.cx, cam.cy, cam.baseline);
+        }
       } else {
-        if (left_map1_.empty() || left_map1_.size() != left_bgr.size()) {
-          RCLCPP_ERROR_THROTTLE(
-              get_logger(), *get_clock(), 3000,
-              "stereoRectify maps size %dx%d != decoded %dx%d; skip remap (fix calib or resolution).",
-              left_map1_.empty() ? 0 : left_map1_.cols,
-              left_map1_.empty() ? 0 : left_map1_.rows, left_bgr.cols, left_bgr.rows);
-          return;
-        }
-        if (trace)
-          RCLCPP_INFO(get_logger(), "[trace pre_fc=%d] stereoRectify path: remap L/R", pre_fc);
-        cv::remap(left_bgr, left_rect, left_map1_, left_map2_, cv::INTER_LINEAR,
-                  cv::BORDER_CONSTANT);
-        cv::remap(right_bgr, right_rect, right_map1_, right_map2_, cv::INTER_LINEAR,
-                  cv::BORDER_CONSTANT);
+        RCLCPP_WARN_ONCE(get_logger(), "StereoRectify::build_undistmap failed; falling back to pass-through");
       }
-      if (trace) {
-        RCLCPP_INFO(get_logger(),
-                    "[trace pre_fc=%d] undistort/remap finished: left_rect %dx%d c=%d right_rect %dx%d c=%d",
-                    pre_fc, left_rect.cols, left_rect.rows, left_rect.isContinuous() ? 1 : 0,
-                    right_rect.cols, right_rect.rows, right_rect.isContinuous() ? 1 : 0);
-      }
-    } else {
-      left_rect = left_bgr;
-      right_rect = right_bgr;
-      if (trace)
-        RCLCPP_INFO(get_logger(), "[trace pre_fc=%d] no rectification, pass-through BGR", pre_fc);
     }
 
-    stereonet::CameraIntrinsic cam = camera_intrinsic_; // copy (scaled-K path: fx,cy match undistorted frame)
+    if (!rect_ok) {
+      left_rect = left_bgr;
+      right_rect = right_bgr;
+      if (trace) {
+        RCLCPP_INFO(get_logger(),
+                    "[trace pre_fc=%d] pass-through BGR (no undistort/remap) orig=%dx%d",
+                    pre_fc, orig_w, orig_h);
+      }
+      // Scale intrinsics from calib ref size to decoded size (original path)
+      if (!calib_K_left_.empty() && calib_ref_w_ > 0 && calib_ref_h_ > 0) {
+        const double sw = static_cast<double>(orig_w) / static_cast<double>(calib_ref_w_);
+        const double sh = static_cast<double>(orig_h) / static_cast<double>(calib_ref_h_);
+        cv::Mat Ks = scaled_camera_matrix_wh(calib_K_left_, sw, sh);
+        cam.fx = Ks.at<double>(0, 0);
+        cam.fy = Ks.at<double>(1, 1);
+        cam.cx = Ks.at<double>(0, 2);
+        cam.cy = Ks.at<double>(1, 2);
+        cam.baseline = stereo_baseline_m_;
+      }
+    }
+    // If rectification output is already at model size, update orig_w/h to skip resize
+    if (rect_ok) {
+      orig_w = model_input_w_;
+      orig_h = model_input_h_;
+    }
+
     cv::Mat left_img_resize, right_img_resize;
 
     if (orig_w != model_input_w_ || orig_h != model_input_h_) {
@@ -1053,6 +943,9 @@ private:
           if (publish_depth_ && !depth.empty()) {
             publish_depth_image(depth, header);
           }
+          if (publish_depth_color_ && !depth.empty()) {
+            publish_depth_color_image(depth, header);
+          }
           if (publish_pointcloud_ && !depth.empty() && cam.is_valid()) {
             publish_pointcloud2(depth, left_rs_safe, cam, header);
           }
@@ -1067,9 +960,10 @@ private:
           }
           if (count < 12) {
             RCLCPP_INFO(get_logger(),
-                        "[trace post count=%d] publish done (flags: depth=%d pc=%d visual=%d disp=%d)",
-                        count, publish_depth_ ? 1 : 0, publish_pointcloud_ ? 1 : 0,
-                        publish_visual_ ? 1 : 0, publish_disp_ ? 1 : 0);
+                        "[trace post count=%d] publish done (flags: depth=%d depth_color=%d pc=%d visual=%d "
+                        "disp=%d)",
+                        count, publish_depth_ ? 1 : 0, publish_depth_color_ ? 1 : 0,
+                        publish_pointcloud_ ? 1 : 0, publish_visual_ ? 1 : 0, publish_disp_ ? 1 : 0);
           }
 
           // ---- save results ------------------------------------------------------
@@ -1156,6 +1050,54 @@ private:
     msg->data.resize(data_size);
     std::memcpy(msg->data.data(), cont.data, data_size);
     depth_pub_->publish(std::move(msg));
+  }
+
+  /** CV_16UC1 深度 mm → 伪彩色 BGR（Turbo 等），invalid=0 为近黑 */
+  void publish_depth_color_image(const cv::Mat &depth,
+                                 const std_msgs::msg::Header &header) {
+    if (!depth_color_pub_ || depth.empty() || depth.type() != CV_16UC1)
+      return;
+    const double max_mm = std::max(1.0, depth_color_max_m_ * 1000.0);
+    const double inv_max = 1.0 / max_mm;
+    const double gamma = depth_color_gamma_ > 1e-6 ? depth_color_gamma_ : 0.55;
+
+    cv::Mat norm(depth.size(), CV_8UC1);
+    for (int y = 0; y < depth.rows; ++y) {
+      const uint16_t *sr = depth.ptr<uint16_t>(y);
+      uint8_t *dr = norm.ptr<uint8_t>(y);
+      for (int x = 0; x < depth.cols; ++x) {
+        const uint16_t d = sr[x];
+        if (d == 0) {
+          dr[x] = 0;
+          continue;
+        }
+        double t = std::min(1.0, static_cast<double>(d) * inv_max);
+        if (std::abs(gamma - 1.0) > 1e-6)
+          t = std::pow(t, gamma);
+        dr[x] = static_cast<uint8_t>(std::lrint(t * 255.0));
+      }
+    }
+
+    cv::Mat color;
+    cv::applyColorMap(norm, color, depth_color_cmap_id_);
+
+    // 右侧色条：256 档一次着色再缩放，上=近(暗)、下=远(亮)，与主图映射一致
+    const int bar_w = 28;
+    cv::Mat grad(256, 1, CV_8UC1);
+    for (int i = 0; i < 256; ++i)
+      grad.at<uint8_t>(i, 0) = static_cast<uint8_t>(i);
+    cv::Mat grad_c;
+    cv::applyColorMap(grad, grad_c, depth_color_cmap_id_);
+    cv::Mat legend;
+    cv::resize(grad_c, legend, cv::Size(bar_w, color.rows), 0, 0, cv::INTER_NEAREST);
+    cv::Mat out;
+    cv::hconcat(color, legend, out);
+    cv::putText(out, "near", cv::Point(color.cols + 2, 14), cv::FONT_HERSHEY_SIMPLEX, 0.35,
+                cv::Scalar(220, 220, 220), 1, cv::LINE_AA);
+    cv::putText(out, "far", cv::Point(color.cols + 2, out.rows - 6), cv::FONT_HERSHEY_SIMPLEX, 0.35,
+                cv::Scalar(220, 220, 220), 1, cv::LINE_AA);
+
+    publish_image(depth_color_pub_, out, "bgr8", header);
   }
 
   void publish_disp_image(const cv::Mat &disp,
@@ -1292,13 +1234,18 @@ private:
   bool publish_pointcloud_ = true;
   bool publish_visual_ = false;
   bool publish_disp_ = false;
+  bool publish_depth_color_ = true;
   std::string depth_topic_;
   std::string pointcloud_topic_;
   std::string visual_topic_;
   std::string disp_topic_;
+  std::string depth_color_topic_;
   std::string frame_id_ = "camera_link";
   int pc_downsample_step_ = 2;
   double pc_depth_max_ = 5.0;
+  double depth_color_max_m_ = 8.0;
+  double depth_color_gamma_ = 0.55;
+  int depth_color_cmap_id_ = cv::COLORMAP_JET;
 
   // -- model
   std::shared_ptr<stereonet::StereonetProcess> stereonet_process_;
@@ -1318,6 +1265,7 @@ private:
 
   // -- publishers
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr depth_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr depth_color_pub_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pointcloud_pub_;
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr visual_pub_;
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr disp_pub_;
@@ -1336,22 +1284,27 @@ private:
   std::unique_ptr<BS::thread_pool<>> postprocess_thread_pool_ptr_ = nullptr;
   std::unique_ptr<BS::thread_pool<>> save_thread_pool_ptr_ = nullptr;
 
-  // -- rectification / undistort
-  bool use_rectification_ = false;
-  bool undistort_use_stereo_rectify_ = false;
-  bool undistort_scaled_k_mode_ = false;
-  int undistort_dist_coeff_count_ = 5;
-  bool undistort_force_no_distortion_ = false;
-  double undistort_extreme_k1_threshold_ = 2.0;
+  // -- calib from YAML: left K @ ref resolution + baseline (intrinsic scaled per frame if size differs)
   int calib_ref_w_ = 0;
   int calib_ref_h_ = 0;
-  int undistort_maps_cache_w_ = 0;
-  int undistort_maps_cache_h_ = 0;
   double stereo_baseline_m_ = 0.0;
-  cv::Mat calib_K_left_, calib_D_left_, calib_K_right_, calib_D_right_;
-  std::mutex undistort_mtx_;
-  cv::Mat left_map1_, left_map2_;
-  cv::Mat right_map1_, right_map2_;
+  cv::Mat calib_K_left_;
+
+  // -- stereo rectification
+  bool use_rectification_ = false;
+  std::string stereo_calib_file_;
+  std::shared_ptr<StereoRectify> stereo_rectifier_;
+  int last_rect_w_ = -1;
+  int last_rect_h_ = -1;
+
+  // -- static TF (lidar → camera_link)
+  std::string body_frame_id_  = "body";
+  std::string lidar_frame_id_ = "lidar";
+  cv::Mat     calib_R_BC_left_;
+  cv::Vec3d   calib_T_BC_left_;
+  cv::Mat     calib_R_BL_;
+  cv::Vec3d   calib_t_BL_;
+  std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
 };
 
 // ========================================================================================
